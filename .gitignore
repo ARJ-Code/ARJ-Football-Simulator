@@ -159,5 +159,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-src/players_fc_barcelona.json
-src/players_real_madrid.json
+data/players_fc_barcelona.json
+data/players_real_madrid.json

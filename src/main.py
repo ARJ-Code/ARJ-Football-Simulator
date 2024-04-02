@@ -5,7 +5,7 @@ from simulation_tools.player import Player
 
 
 
-with open('players_fc_barcelona.json') as file:
+with open('../data/players_fc_barcelona.json') as file:
     json_data = json.load(file)
 
 player_with_file_data = Player(json_data[6])

@@ -15,14 +15,14 @@ jugadores_fc_barcelona = df[df['club_name'] == 'FC Barcelona']
 
 json_data = jugadores_fc_barcelona.to_json(orient='records')
 
-with open('players_fc_barcelona.json', 'w') as file:
+with open('../data/players_fc_barcelona.json', 'w') as file:
     file.write(filter_atributes(json_data))
 
 jugadores_real_madrid = df[df['club_name'] == 'Real Madrid CF']
 
 json_data = jugadores_real_madrid.to_json(orient='records')
 
-with open('players_real_madrid.json', 'w') as file:
+with open('../data/players_real_madrid.json', 'w') as file:
     file.write(filter_atributes(json_data))    
 
 
