@@ -8,7 +8,7 @@ B = 'B'
 class Team:
     def __init__(self, manager: Manager, players: List[Player]) -> None:
         self.manager: Manager = manager
-        self.line_up: List[str] = []
+        self.line_up: List[Tuple[int, int, int]] = []
         self.players: List[Player] = players
         self.dorsal_to_player: Dict[int, Player] = {}
 
@@ -47,7 +47,6 @@ class Field:
     def conf_teams(self, team_a: Team, team_b: Team):
         for d, r, c in team_a.line_up:
             self.grid[r][c].player = team_a.dorsal_to_player[d]
-            self.grid[r][c]
         for d, r, c in team_b.line_up:
             self.grid[r][c].player = team_a.dorsal_to_player[d]
 
@@ -61,7 +60,8 @@ class Field:
 
 
 class StatisticsPLayer:
-    def __init__(self, dorsal: int):
+    def __init__(self, dorsal: int, team: str):
+        self.team: str = team
         self.dorsal: int = dorsal
         self.goals: int = 0
         self.passes: int = 0

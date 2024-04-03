@@ -9,7 +9,8 @@ class FootballAgent(ABC):
 class Player(FootballAgent):
     def __init__(self, data: PlayerData) -> None:
         super().__init__()
-        self.data: PlayerData = data 
+        self.stamina: int = 100
+        self.data: PlayerData = data
 
 
 class Manager(FootballAgent):
