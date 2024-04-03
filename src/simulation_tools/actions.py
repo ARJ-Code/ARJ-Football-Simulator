@@ -26,15 +26,12 @@ class Pass(Action):
         super().__init__(src, dest, player)
 
     def execute(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina -= 1
-        game.field.grid[self.src[0]][self.src[1]].ball = False
-        game.field.grid[self.dest[0]][self.dest[1]].ball = True
+        self.player.stamina -= 1
+        game.field.move_ball(self.src, self.dest)
 
     def reset(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina += 1
-
-        game.field.grid[self.src[0]][self.src[1]].ball = True
-        game.field.grid[self.dest[0]][self.dest[1]].ball = False
+        self.player.stamina += 1
+        game.field.move_ball(self.dest, self.src)
 
 
 class MoveWithBall(Action):
@@ -42,24 +39,12 @@ class MoveWithBall(Action):
         super().__init__(src, dest, player)
 
     def execute(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina -= 2
-
-        player = game.field.grid[self.src[0]][self.src[1]].player
-
-        game.field.grid[self.src[0]][self.src[1]].ball = False
-        game.field.grid[self.dest[0]][self.dest[1]].ball = True
-
-        game.field.grid[self.dest[0]][self.dest[1]].player = player
+        self.player.stamina -= 2
+        game.field.move_player(self.src, self.dest, self.player)
 
     def reset(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina += 2
-
-        player = game.field.grid[self.dest[0]][self.dest[1]].player
-
-        game.field.grid[self.dest[0]][self.dest[1]].ball = False
-        game.field.grid[self.src[0]][self.src[1]].ball = True
-
-        game.field.grid[self.src[0]][self.src[1]].player = player
+        self.player.stamina += 2
+        game.field.move_player(self.dest, self.src, self.player)
 
 
 class Dribble(MoveWithBall):
@@ -67,31 +52,32 @@ class Dribble(MoveWithBall):
         super().__init__(src, dest, player)
 
     def execute(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina -= 1
+        self.player.stamina -= 1
+        return super().execute(game)
+    
+    def reset(self, game: Game):
+        self.player.stamina += 1
         return super().execute(game)
 
 
-class StillBall(Action):
+class StealBall(Action):
     def __init__(self, src: Tuple[int], dest: Tuple[int], player: Player) -> None:
         super().__init__(src, dest)
 
     def execute(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina -= 1
-
-        game.field.grid[self.src[0]][self.src[1]].ball = True
-        game.field.grid[self.dest[0]][self.dest[1]].ball = False
+        self.player.stamina -= 1
+        game.field.move_ball(self.src, self.dest)
 
     def reset(self, game: Game):
-        game.field.grid[self.src[0]][self.src[1]].player.stamina += 1
-
-        game.field.grid[self.src[0]][self.src[1]].ball = False
-        game.field.grid[self.dest[0]][self.dest[1]].ball = True
+        self.player.stamina += 1
+        game.field.move_ball(self.dest, self.src)
 
 class Shoot(Action):
     def __init__(self, src: Tuple[int], dest: Tuple[int], player: Player) -> None:
         super().__init__(src, dest, player)
 
     def execute(self, game: Game):
+        
         
         
 

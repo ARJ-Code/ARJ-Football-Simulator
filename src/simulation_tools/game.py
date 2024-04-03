@@ -35,7 +35,7 @@ class GridFiled:
 
 
 class Field:
-    def __init__(self, rows: int = 20, columns: int = 12):
+    def __init__(self, rows: int = 20, columns: int = 13):
         self.rows = rows
         self.columns = columns
         self.grid: List[List[GridFiled]] = [
@@ -49,6 +49,24 @@ class Field:
             self.grid[r][c].player = team_a.dorsal_to_player[d]
         for d, r, c in team_b.line_up:
             self.grid[r][c].player = team_a.dorsal_to_player[d]
+
+    def move_ball(self, src: Tuple[int, int], dest: Tuple[int, int]):
+        x, y = src
+        if self.grid[x, y]:
+            self.grid[x, y] = False
+            x, y = dest
+            self.grid[x, y] = True
+        else:
+            raise Exception("The ball is not in the source position")
+        
+    def move_player(self, src: Tuple[int, int], dest: Tuple[int, int], player: Player):
+        x, y = src
+        if self.grid[x, y].player is None:
+            raise Exception("The player is not in teh source position")
+        else:
+            self.grid[x, y].player = None
+            x, y = dest
+            self.grid[x, y].player = player
 
     def __str__(self) -> str:
         field_str = ""
@@ -77,7 +95,7 @@ class StatisticsTeam:
     def __init__(self, team: str):
         self.team_name: str = team
         self.goals: int = 0
-        self.possession: int = 50
+        self.possession_instances: int = 0
         self.shots: int = 0
         self.fouls: int = 0
         self.passes_completed: int = 0
