@@ -1,5 +1,5 @@
-from typing import List
-
+from typing import List, Dict
+from .player_data import PlayerData
 from simulation_tools.team import Team
 
 
@@ -29,15 +29,19 @@ class StatisticsTeam:
 
 
 class GameData:
-    def __init__(self, home: Team, visitor: Team) -> None:
+    def __init__(self, home: Team, away: Team) -> None:
         self.home = home
-        self.visitor = visitor
+        self.away = away
         self.home_statistics = StatisticsTeam(home.name)
-        self.visitor_statistics = StatisticsTeam(visitor.name)
-        self.home_players_statistics: {int, StatisticsPLayer} = {}
-        self.visitor_players_statistics: {int, StatisticsPLayer} = {}
+        self.away_statistics = StatisticsTeam(away.name)
+        self.home_players_statistics: Dict[int, StatisticsPLayer] = {}
+        self.visitor_players_statistics: Dict[int, StatisticsPLayer] = {}
+        self.home_players_data: Dict[int, PlayerData] = {}
+        self.away_players_data: Dict[int, PlayerData] = {}
 
         for player in home.players:
             self.home_players_statistics[player.dorsal] = StatisticsPLayer()
-        for player in visitor.players:
-            self.visitor_players_statistics[player.dorsal] = StatisticsPLayer()
+            self.home_players_data[player.dorsal] = player
+        for player in away.players:
+            self.away_players_statistics[player.dorsal] = StatisticsPLayer()
+            self.away_players_data[player.dorsal] = player

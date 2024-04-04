@@ -3,7 +3,7 @@ from .game import Game
 from typing import Tuple
 from typing import List
 from .football_agent import Player
-from .game import A, B
+from .team import HOME, AWAY
 from random import random
 
 
@@ -84,50 +84,50 @@ class Shoot(Action):
     def execute(self):
         x, y = self.src
         q = self.player.data.shooting*2/100 / \
-            ((self.game.field.distance_goal_a(self.src)
-             if self.game.field[x][y].team == B else self.game.field.distance_goal_a(self.src))+1)
+            ((self.game.field.distance_goal_h(self.src)
+             if self.game.field[x][y].team == AWAY else self.game.field.distance_goal_b(self.src))+1)
 
         self.ok = random() <= q
 
         self.player.stamina -= 2
-        if self.game.field.grid[x][y].team == A:
-            self.game.field.move_ball(self.src, self.game.field.goal_b)
+        if self.game.field.grid[x][y].team == AWAY:
+            self.game.field.move_ball(self.src, self.game.field.goal_h)
         else:
-            self.game.field.move_ball(self.src, self.game.field.goal_b)
+            self.game.field.move_ball(self.src, self.game.field.goal_a)
 
     def reset(self):
         x, y = self.src
 
         self.player.stamina -= 2
-        if self.game.field.grid[x][y].team == A:
-            self.game.field.move_ball(self.game.field.goal_b, self.src)
+        if self.game.field.grid[x][y].team == AWAY:
+            self.game.field.move_ball(self.game.field.goal_h, self.src)
         else:
-            self.game.field.move_ball(self.game.field.goal_b, self.src)
+            self.game.field.move_ball(self.game.field.goal_a, self.src)
 
 
 class Goal(Action):
-    def __init__(self, player: Player, game: Game, team: str) -> None:
-        super().__init__((0, 0), (0, 0), player, game)
+    def __init__(self, game: Game, team: str) -> None:
+        super().__init__((0, 0), (0, 0), None, game)
         self.team: str = team
 
-    def execute(self, game: Game):
-        if self.team == A:
-            game.statistics_team_h.goals += 1
+    def execute(self):
+        if self.team == AWAY:
+            self.game.statistics_team_a.goals += 1
         else:
-            game.statistics_team_a.goals += 1
+            self.game.statistics_team_h.goals += 1
 
-    def reset(self, game: Game):
-        if self.team == A:
-            game.statistics_team_h.goals -= 1
+    def reset(self):
+        if self.team == AWAY:
+            self.game.statistics_team_a.goals -= 1
         else:
-            game.statistics_team_a.goals -= 1
+            self.game.statistics_team_h.goals -= 1
 
 
 class Dispatch:
     def __init__(self) -> None:
         self.stack: List[Action] = []
 
-    def dispatch(self, action: Action, team: str):
+    def dispatch(self, action: Action):
         attack = True
 
         if isinstance(action, StealBall):
@@ -135,20 +135,45 @@ class Dispatch:
 
         if attack:
             self.stack.append(action)
+            if isinstance(action, Shoot) and action.ok:
+                self.shoot_trigger(action)
+
             return
 
-    def shoot_trigger(self, action: Shoot, game, team: str):
-        # x,y=
-        # gk=
-        pass
+    def shoot_trigger(self, action: Shoot):
+        data = action.game.game_data
 
-    def duel(props_h: List[int], props_a: List[int]) -> str:
+        x, y = action.src
+        player = action.game.field.grid[x][y].player
+        team = action.game.field.grid[x][y].team
+
+        x, y = action.game.field.goal_h if team == AWAY else action.game.field.goal_a
+        gk = action.game.field.grid[x][y].player
+
+        props_h = []
+        props_a = []
+
+        if team == AWAY:
+            props_a = [data.home_players_data[player].shots]
+            props_h = [data.home_players_data[gk].goal_keep_reflexes,
+                       data.home_players_data[gk].goal_keep_diving]
+        else:
+            props_h = [data.home_players_statistics[player].shots]
+            props_a = [data.away_players_data[gk].goal_keep_reflexes,
+                       data.away_players_data[gk].goal_keep_diving]
+
+        if self.duel(props_h, props_a) == team:
+            action = Goal(action.game, team)
+            self.stack.append(action)
+            action.execute()
+
+    def duel(self, props_h: List[int], props_a: List[int]) -> str:
         mh = sum(props_h)/len(props_h)
         ma = sum(props_a)/len(props_a)
 
         rnd_h, rnd_a = random()*(100-mh), random()*(100-ma)
 
-        return A if rnd_h > rnd_a else B
+        return HOME if rnd_h > rnd_a else AWAY
 
     def reset(self, game: Game):
         self.stack[-1].reset(game)
