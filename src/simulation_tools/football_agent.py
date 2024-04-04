@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from simulation_tools.game import Game
 from .player_data import PlayerData
 
 
@@ -7,10 +9,12 @@ class FootballAgent(ABC):
 
 
 class Player(FootballAgent):
-    def __init__(self, data: PlayerData) -> None:
+    def __init__(self, stamina: int) -> None:
         super().__init__()
-        self.stamina: int = 100
-        self.data: PlayerData = data
+        self.stamina = stamina
+
+    def get_perceptions(self, game: Game):
+        pass
 
 
 class Manager(FootballAgent):
