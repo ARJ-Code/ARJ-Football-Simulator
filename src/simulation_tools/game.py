@@ -1,6 +1,7 @@
 from .football_agent import *
 from typing import List, Tuple, Dict
 import math
+from numpy import double
 
 
 class GridField:
@@ -46,7 +47,7 @@ class Field:
     def move_player(self, src: Tuple[int, int], dest: Tuple[int, int], player: int):
         x, y = src
         if self.grid[x][y].player is None:
-            raise Exception("The player is not in teh source position")
+            raise Exception("The player is not in the source position")
         else:
             self.grid[x][y].player = None
             x, y = dest
@@ -64,9 +65,31 @@ class Field:
 
     def distance_goal_b(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_b)
+    
+    def find_player(self, dorsal: int, team: str) -> Tuple[int, int]:
+        for row in self.grid:
+            for grid in row:
+                if grid.player == dorsal and grid.team == team:
+                    return grid.row, grid.col
+        raise Exception(f"There is no player with the dorsal {dorsal} of the {team} team on the field")
 
-    def neighbor_grids(self):
-        pass
+    def neighbor_grids(self, src: Tuple[int, int], max_distance: double) -> List[Tuple[GridField, double]]:
+        x, y = src
+        grids: List[Tuple[GridField, double]] = []
+        for row in self.grid:
+            for grid in row:
+                distance = self.distance((x, y), (grid.row, grid.col))
+                if distance <= max_distance:
+                    grids.append(grid, distance)
+        return grids
+    
+    def contigous_grids(self, f: Tuple[int, int], s: Tuple[int, int]) -> bool:
+        return abs(f[0] - s[0]) == 1 or abs(f[1] - s[1]) == 1
+    
+    def friendly_grid(self, team: str, g: Tuple[int, int]) -> bool:
+        x, y = g
+        return self.grid[x][y].team == team
+
 
     def __str__(self) -> str:
         field_str = ""
