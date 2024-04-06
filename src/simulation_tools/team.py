@@ -1,6 +1,8 @@
 from typing import List
-
 from simulation_tools.player_data import PlayerData
+
+AWAY = 'A'
+HOME = 'H'
 
 
 class Team:
