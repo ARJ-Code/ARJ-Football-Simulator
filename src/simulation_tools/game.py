@@ -2,6 +2,7 @@ from .football_agent import *
 from typing import List, Tuple, Dict
 import math
 from numpy import double
+from .data import GameData
 
 
 class GridField:
@@ -14,9 +15,10 @@ class GridField:
         self.team: str = team
 
     def __str__(self) -> str:
-        if self.player -1:
+        if self.player - 1:
             return '   '
         return f'{f"0"  if self.player < 10 else ""}{self.player}-{self.team}'
+
 
 class Field:
     def __init__(self, rows: int = 20, columns: int = 13):
@@ -24,9 +26,9 @@ class Field:
         self.columns = columns
         self.grid: List[List[GridField]] = [
             [GridField(r, c, False) for r in range(columns)] for c in range(rows)]
-        self.goal_a = [(0, columns // 2-1), (0, columns // 2),
+        self.goal_h = [(0, columns // 2-1), (0, columns // 2),
                        (0, columns // 2 + 1)]
-        self.goal_b = [(rows - 1, columns // 2 - 1),
+        self.goal_a = [(rows - 1, columns // 2 - 1),
                        (rows - 1, columns // 2), (rows - 1, columns // 2 + 1)]
 
     # def conf_teams(self, team_a: Team, team_b: Team):
@@ -43,13 +45,14 @@ class Field:
             self.grid[x][y] = True
         else:
             raise Exception("The ball is not in the source position")
-        
-    def move_player(self, src: Tuple[int, int], dest: Tuple[int, int], player: int):
+
+    def move_player(self, src: Tuple[int, int], dest: Tuple[int, int]):
         x, y = src
-        if self.grid[x][y].player is None:
-            raise Exception("The player is not in the source position")
+        if self.grid[x][y].player == -1:
+            raise Exception("The player is not in teh source position")
         else:
-            self.grid[x][y].player = None
+            player = self.grid[x][y].player
+            self.grid[x][y].player = -1
             x, y = dest
             self.grid[x][y].player = player
 
@@ -61,7 +64,7 @@ class Field:
         return math.sqrt((xs-xd)**2+(ys-yd)**2)
 
     def distance_goal_a(self, src: Tuple[int, int]):
-        return min(Field.distance(d, src) for d in self.goal_a)
+        return min(Field.distance(d, src) for d in self.goal_h)
 
     def distance_goal_b(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_b)
@@ -101,7 +104,8 @@ class Field:
 
 
 class Game:
-    def __init__(self, home: Tuple[str, List[int]], visitor: Tuple[str, List[int]]):
-        self.home = home
-        self.visitor = visitor
+    def __init__(self, home: Tuple[str, List[int]], visitor: Tuple[str, List[int]], game_data: GameData):
+        self.home: Tuple[str, List[int]] = home
+        self.visitor: Tuple[str, List[int]] = visitor
         self.field: Field = Field()
+        self.game_data: GameData = game_data
