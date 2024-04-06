@@ -4,7 +4,7 @@ from typing import Tuple
 from typing import List
 from .football_agent import Player
 from .team import HOME, AWAY
-from random import random
+from random import random, randint
 
 
 class Action(ABC):
@@ -69,10 +69,19 @@ class StealBall(Action):
 
     def execute(self):
         self.player.stamina -= 1
-        self.game.field.move_ball(self.src, self.dest)
 
     def reset(self):
         self.player.stamina += 1
+
+
+class StealBallTrigger(Action):
+    def __init__(self, action: StealBall) -> None:
+        super().__init__(action.src, action.dest, action.player, action.game)
+
+    def execute(self):
+        self.game.field.move_ball(self.src, self.dest)
+
+    def reset(self):
         self.game.field.move_ball(self.dest, self.src)
 
 
@@ -105,9 +114,9 @@ class Shoot(Action):
             self.game.field.move_ball(self.game.field.goal_a, self.src)
 
 
-class Goal(Action):
-    def __init__(self, game: Game, team: str) -> None:
-        super().__init__((0, 0), (0, 0), None, game)
+class GoalTrigger(Action):
+    def __init__(self, action: Shoot, team: str) -> None:
+        super().__init__((0, 0), (0, 0), action.player, action.game)
         self.team: str = team
 
     def execute(self):
@@ -121,6 +130,90 @@ class Goal(Action):
             self.game.statistics_team_a.goals -= 1
         else:
             self.game.statistics_team_h.goals -= 1
+
+
+class AggressionTrigger(Action):
+    def __init__(self, action: StealBall, level: int, team: str) -> None:
+        super().__init__(action.src, action.dest, action.player, action.game)
+        self.level: int = level
+        self.team: str = team
+        self.break_play: bool = False
+        x, y = self.src
+        dorsal = self.game.field[x][y].player
+
+        self.dorsal: int = dorsal
+
+    def execute(self):
+        x, y = self.src
+
+        if self.team == HOME:
+            self.game.game_data.home_statistics.fouls += 1
+            self.game.game_data.home_players_statistics[self.dorsal].fouls += 1
+        else:
+            self.game.game_data.away_statistics.fouls += 1
+            self.game.game_data.away_players_statistics[self.dorsal].fouls += 1
+
+        if self.level == 1:
+            if self.team == HOME:
+                self.game.game_data.home_statistics.yellow_cards += 1
+                self.game.game_data.home_players_statistics[self.dorsal].yellow_cards += 1
+            else:
+                self.game.game_data.away_statistics.yellow_cards += 1
+                self.game.game_data.away_players_statistics[self.dorsal].yellow_cards += 1
+
+        if self.level == 2:
+            if self.team == HOME:
+                self.game.game_data.home_statistics.red_cards += 1
+                self.game.game_data.home_players_statistics[self.dorsal].red_cards += 1
+            else:
+                self.game.game_data.away_statistics.red_cards += 1
+                self.game.game_data.away_players_statistics[self.dorsal].red_cards += 1
+
+        if self.team == HOME:
+            if self.game.game_data.home_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.home_players_statistics[self.dorsal].yellow_cards == 2:
+                self.game.field[x][y].player = -1
+                self.game.field[x][y].team = ''
+                self.break_play = True
+        else:
+            if self.game.game_data.away_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.away_players_statistics[self.dorsal].yellow_cards == 2:
+                self.game.field[x][y].player = -1
+                self.game.field[x][y].team = ''
+                self.break_play = True
+
+    def reset(self):
+        x, y = self.src
+
+        if self.team == HOME:
+            if self.game.game_data.home_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.home_players_statistics[self.dorsal].yellow_cards == 2:
+                self.game.field[x][y].player = self.dorsal
+                self.game.field[x][y].team = self.team
+        else:
+            if self.game.game_data.away_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.away_players_statistics[self.dorsal].yellow_cards == 2:
+                self.game.field[x][y].player = self.dorsal
+                self.game.field[x][y].team = self.team
+
+        if self.team == HOME:
+            self.game.game_data.home_statistics.fouls -= 1
+            self.game.game_data.home_players_statistics[self.dorsal].fouls -= 1
+        else:
+            self.game.game_data.away_statistics.fouls -= 1
+            self.game.game_data.away_players_statistics[self.dorsal].fouls -= 1
+
+        if self.level == 1:
+            if self.team == HOME:
+                self.game.game_data.home_statistics.yellow_cards -= 1
+                self.game.game_data.home_players_statistics[self.dorsal].yellow_cards -= 1
+            else:
+                self.game.game_data.away_statistics.yellow_cards -= 1
+                self.game.game_data.away_players_statistics[self.dorsal].yellow_cards -= 1
+
+        if self.level == 2:
+            if self.team == HOME:
+                self.game.game_data.home_statistics.red_cards -= 1
+                self.game.game_data.home_players_statistics[self.dorsal].red_cards -= 1
+            else:
+                self.game.game_data.away_statistics.red_cards -= 1
+                self.game.game_data.away_players_statistics[self.dorsal].red_cards -= 1
 
 
 class Dispatch:
@@ -139,6 +232,73 @@ class Dispatch:
                 self.shoot_trigger(action)
 
             return
+
+    def intercept_trigger(self, action: StealBall):
+        data = action.game.game_data
+
+        x, y = action.src
+        player_src = action.game.field.grid[x][y].player
+        team = action.game.field.grid[x][y].team
+
+        x, y = action.dest
+        player_dest = action.game.field.grid[x][y].player
+
+        if team == AWAY:
+            props_a = [data.home_players_data[player_src].defending,
+                       data.home_players_data[player_src].mentality_interceptions]
+            props_h = [data.home_players_data[player_dest].movement_reactions,
+                       data.home_players_data[player_dest].skill_ball_control]
+        else:
+            props_h = [data.home_players_data[player_src].defending,
+                       data.home_players_data[player_src].mentality_interceptions]
+            props_a = [data.home_players_data[player_dest].movement_reactions,
+                       data.home_players_data[player_dest].skill_ball_control]
+
+        if self.duel(props_h, props_a) == team:
+            action = StealBallTrigger(action)
+            self.stack.append(action)
+            action.execute()
+
+    def def_dribbling_trigger(self, action: StealBall):
+        data = action.game.game_data
+
+        x, y = action.src
+        player_src = action.game.field.grid[x][y].player
+        team = action.game.field.grid[x][y].team
+
+        x, y = action.dest
+        player_dest = action.game.field.grid[x][y].player
+
+        if team == AWAY:
+            props_a = [data.home_players_data[player_src].defending,
+                       data.home_players_data[player_src].pace]
+            props_h = [data.home_players_data[player_dest].pace,
+                       data.home_players_data[player_dest].dribbling]
+        else:
+            props_h = [data.home_players_data[player_src].defending,
+                       data.home_players_data[player_src].mentality_interceptions]
+            props_a = [data.home_players_data[player_dest].pace,
+                       data.home_players_data[player_dest].dribbling]
+
+        if self.duel(props_h, props_a) == team:
+            action = StealBallTrigger(action)
+            self.stack.append(action)
+            action.execute()
+        else:
+            rnd = randint(
+                data.home_players_data[player_src].mentality_aggression, 100)
+            if rnd >= 90 and rnd < 95:
+                action = AggressionTrigger(action, 0, team)
+                self.stack.append(action)
+                action.execute()
+            if rnd >= 95 and rnd < 100:
+                action = AggressionTrigger(action, 1, team)
+                self.stack.append(action)
+                action.execute()
+            if rnd == 100:
+                action = AggressionTrigger(action, 2, team)
+                self.stack.append(action)
+                action.execute()
 
     def shoot_trigger(self, action: Shoot):
         data = action.game.game_data
@@ -163,7 +323,7 @@ class Dispatch:
                        data.away_players_data[gk].goal_keep_diving]
 
         if self.duel(props_h, props_a) == team:
-            action = Goal(action.game, team)
+            action = GoalTrigger(action.game, team)
             self.stack.append(action)
             action.execute()
 

@@ -35,7 +35,7 @@ class GameData:
         self.home_statistics = StatisticsTeam(home.name)
         self.away_statistics = StatisticsTeam(away.name)
         self.home_players_statistics: Dict[int, StatisticsPLayer] = {}
-        self.visitor_players_statistics: Dict[int, StatisticsPLayer] = {}
+        self.away_players_statistics: Dict[int, StatisticsPLayer] = {}
         self.home_players_data: Dict[int, PlayerData] = {}
         self.away_players_data: Dict[int, PlayerData] = {}
 
