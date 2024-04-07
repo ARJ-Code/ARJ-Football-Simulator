@@ -8,15 +8,20 @@ from simulation_tools.game import Game
 from simulation_tools.game import GridField
 from typing import List, Tuple
 
-class FootballAgent(ABC):
-    pass
+from simulation_tools.strategies import Strategy
+
+class FootballAgent():
+    def __init__(self, strategy: Strategy) -> None:
+        self.strategy = strategy
+
+    def select_action(self, actions: List[Action], game: Game) -> Action:
+        return self.strategy.select_action(actions)
 
 
 class Player(FootballAgent):
-    def __init__(self, stamina: int, vision: int, dorsal: int, team: str) -> None:
-        super().__init__()
-        # self.stamina = stamina
-        self.vision: double = vision % 10
+    def __init__(self, stamina: int, vision: int, dorsal: int, team: str, strategy: Strategy) -> None:
+        super().__init__(strategy)
+        self.vision: int = vision % 10
         self.dorsal = dorsal
         self.team = team
 
@@ -47,11 +52,10 @@ class Player(FootballAgent):
         return abs(f[0] - dest[0]) == 1 or abs(f[1] - dest[1]) == 1
     
     def is_friendly_grid(self, g: GridField) -> bool:
-        return self.team is not None and g.team == self.team
+        return g.team is not None and g.team == self.team
     
-    def is_enemy_grid(self, team: str, g: Tuple[int, int]) -> bool:
-        x, y = g
-        return self.grid[x][y].team is not None and self.grid[x][y].team != team
+    def is_enemy_grid(self, team: str, g: GridField) -> bool:
+        return g.team is not None and g.team != self.team
     
     def construct_actions(self, game: Game, has_ball: bool, empty_contiguous_grids: List[GridField], 
                           friendly_grids: List[GridField], enemy_contiguous_grids: List[GridField]) -> List[Action]:
