@@ -3,6 +3,7 @@ from typing import List, Tuple, Dict
 import math
 from numpy import double
 from .data import GameData
+from .team import Team, HOME, AWAY
 
 
 class GridField:
@@ -31,18 +32,20 @@ class Field:
         self.goal_a = [(rows - 1, columns // 2 - 1),
                        (rows - 1, columns // 2), (rows - 1, columns // 2 + 1)]
 
-    # def conf_teams(self, team_a: Team, team_b: Team):
-    #     for d, r, c in team_a.line_up:
-    #         self.grid[r][c].player = team_a.dorsal_to_player[d]
-    #     for d, r, c in team_b.line_up:
-    #         self.grid[r][c].player = team_a.dorsal_to_player[d]
+    def conf_line_ups(self, line_up_h: List[Tuple[int, int, int]], line_up_a: List[Tuple[int, int, int]]):
+        for d, r, c in line_up_h:
+            self.grid[r][c].player = d
+            self.grid[r][c].team = HOME
+        for d, r, c in line_up_a:
+            self.grid[r][c].player = d
+            self.grid[r][c].team = AWAY
 
     def move_ball(self, src: Tuple[int, int], dest: Tuple[int, int]):
         x, y = src
-        if self.grid[x][y]:
-            self.grid[x][y] = False
+        if self.grid[x][y].ball:
+            self.grid[x][y].ball = False
             x, y = dest
-            self.grid[x][y] = True
+            self.grid[x][y].ball = True
         else:
             raise Exception("The ball is not in the source position")
 
@@ -68,13 +71,14 @@ class Field:
 
     def distance_goal_b(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_b)
-    
+
     def find_player(self, dorsal: int, team: str) -> Tuple[int, int]:
         for row in self.grid:
             for grid in row:
                 if grid.player == dorsal and grid.team == team:
                     return grid.row, grid.col
-        raise Exception(f"There is no player with the dorsal {dorsal} of the {team} team on the field")
+        raise Exception(
+            f"There is no player with the dorsal {dorsal} of the {team} team on the field")
 
     def neighbor_grids(self, src: Tuple[int, int], max_distance: double) -> List[Tuple[GridField, double]]:
         x, y = src
@@ -85,14 +89,13 @@ class Field:
                 if distance <= max_distance:
                     grids.append(grid, distance)
         return grids
-    
+
     def contigous_grids(self, f: Tuple[int, int], s: Tuple[int, int]) -> bool:
         return abs(f[0] - s[0]) == 1 or abs(f[1] - s[1]) == 1
-    
+
     def friendly_grid(self, team: str, g: Tuple[int, int]) -> bool:
         x, y = g
         return self.grid[x][y].team == team
-
 
     def __str__(self) -> str:
         field_str = ""
