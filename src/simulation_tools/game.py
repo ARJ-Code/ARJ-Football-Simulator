@@ -1,3 +1,4 @@
+from simulation_tools.team import HOME
 from .football_agent import *
 from typing import List, Tuple, Dict
 import math
@@ -18,6 +19,9 @@ class GridField:
         if self.player - 1:
             return '   '
         return f'{f"0"  if self.player < 10 else ""}{self.player}-{self.team}'
+    
+    def __eq__(self, __value: object) -> bool:
+        return self.row == __value.row and self.col == __value.col
 
 
 class Field:
@@ -69,29 +73,34 @@ class Field:
     def distance_goal_b(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_b)
     
-    def find_player(self, dorsal: int, team: str) -> Tuple[int, int]:
+    def find_player(self, dorsal: int, team: str) -> GridField:
         for row in self.grid:
             for grid in row:
                 if grid.player == dorsal and grid.team == team:
-                    return grid.row, grid.col
+                    return grid
         raise Exception(f"There is no player with the dorsal {dorsal} of the {team} team on the field")
 
-    def neighbor_grids(self, src: Tuple[int, int], max_distance: double) -> List[Tuple[GridField, double]]:
-        x, y = src
-        grids: List[Tuple[GridField, double]] = []
+    def neighbor_grids(self, src: GridField, max_distance: double) -> List[GridField]:
+        x, y = (src.row, src.col)
+        grids: List[GridField] = []
         for row in self.grid:
             for grid in row:
                 distance = self.distance((x, y), (grid.row, grid.col))
                 if distance <= max_distance:
-                    grids.append(grid, distance)
+                    grids.append(grid)
         return grids
     
-    def contigous_grids(self, f: Tuple[int, int], s: Tuple[int, int]) -> bool:
-        return abs(f[0] - s[0]) == 1 or abs(f[1] - s[1]) == 1
-    
-    def friendly_grid(self, team: str, g: Tuple[int, int]) -> bool:
-        x, y = g
-        return self.grid[x][y].team == team
+    def self_goal(self, team: str) -> List[Tuple[int, int]]:
+        if team == HOME:
+            return self.goal_h
+        else:
+            return self.goal_a
+        
+    def enemy_goal(self, team: str) -> List[Tuple[int, int]]:
+        if team == HOME:
+            return self.goal_a
+        else:
+            return self.goal_h
 
 
     def __str__(self) -> str:
