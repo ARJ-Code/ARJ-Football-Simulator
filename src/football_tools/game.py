@@ -1,11 +1,11 @@
-from simulation_tools.team import HOME
-from .football_agent import *
-from typing import List, Tuple, Dict
+from football_agent.team import HOME
+from typing import List, Tuple
 import math
 from numpy import double
 from .data import GameData
-from .team import Team, HOME, AWAY
 
+AWAY = 'A'
+HOME = 'H'
 
 class GridField:
     def __init__(self, row: int, col: int, player: int, ball: bool = False, team: str = '') -> None:

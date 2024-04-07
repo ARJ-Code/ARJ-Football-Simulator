@@ -1,5 +1,5 @@
-from simulation_tools.game import Game
-from simulation_tools.team import HOME, Team
+from football_tools.game import Game
+from football_agent.team import HOME, Team
 from typing import Generator
 
 

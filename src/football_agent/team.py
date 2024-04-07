@@ -1,5 +1,5 @@
 from typing import List, Tuple, Dict
-from simulation_tools.player_data import PlayerData
+from football_tools.player_data import PlayerData
 from .football_agent import Player
 
 AWAY = 'A'

@@ -1,7 +1,7 @@
 from random import choice
 from typing import List
-from simulation_tools.actions import Action
-from simulation_tools.game import Game
+from .actions import Action
+from football_tools.game import Game
 
 
 class Strategy:
@@ -10,6 +10,7 @@ class Strategy:
 
     def select_action(self, actions: List[Action], game: Game) -> Action:
         pass
+
 
 class RandomStrategy(Strategy):
     def select_action(self, actions: List[Action], game: Game) -> Action:

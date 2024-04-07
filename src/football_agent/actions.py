@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from .game import Game
-from typing import Tuple
-from typing import List
+from football_tools.game import Game
+from football_tools.data import StatisticsTeam, StatisticsPLayer
+from football_tools.player_data import PlayerData
+from typing import List, Tuple
 from .team import HOME, AWAY
-from .data import StatisticsTeam, StatisticsPLayer
-from .player_data import PlayerData
 from random import random, randint
 
 

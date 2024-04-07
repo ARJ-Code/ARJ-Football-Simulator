@@ -1,6 +1,6 @@
 from typing import List, Dict
 from .player_data import PlayerData
-from simulation_tools.team import Team
+from football_agent.team import Team
 
 
 class StatisticsPLayer:
