@@ -6,6 +6,8 @@ from typing import List, Tuple
 
 from football_agent.strategies import Strategy
 
+AWAY = 'A'
+HOME = 'H'
 
 class FootballAgent(ABC):
     def __init__(self, strategy: Strategy) -> None:

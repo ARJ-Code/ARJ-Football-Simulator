@@ -1,11 +1,8 @@
-from football_agent.team import HOME
 from typing import List, Tuple
 import math
 from numpy import double
-from .data import GameData
+from .data import HOME, AWAY, TeamData
 
-AWAY = 'A'
-HOME = 'H'
 
 class GridField:
     def __init__(self, row: int, col: int, player: int, ball: bool = False, team: str = '') -> None:
@@ -116,8 +113,7 @@ class Field:
 
 
 class Game:
-    def __init__(self, home: List[Tuple[int, int, int]], visitor: List[Tuple[int, int, int]], game_data: GameData):
-        self.home: List[Tuple[int, int, int]] = home
-        self.visitor: List[Tuple[int, int, int]] = visitor
+    def __init__(self, home: TeamData, away: TeamData):
         self.field: Field = Field()
-        self.game_data: GameData = game_data
+        self.home: TeamData = home
+        self.away: TeamData = away

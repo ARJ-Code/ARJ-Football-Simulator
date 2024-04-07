@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from football_tools.game import Game
-from football_tools.data import StatisticsTeam, StatisticsPLayer
-from football_tools.player_data import PlayerData
+from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
 from typing import List, Tuple
-from .team import HOME, AWAY
 from random import random, randint
+
+AWAY = 'A'
+HOME = 'H'
 
 
 class Action(ABC):
@@ -18,21 +19,21 @@ class Action(ABC):
 
     def get_player_data(self) -> PlayerData:
         if self.team == HOME:
-            return self.game.game_data.home_players_data[self.player]
+            return self.game.home.data[self.player]
         else:
-            return self.game.game_data.away_players_data[self.player]
+            return self.game.home.data[self.player]
 
     def get_statistics(self) -> StatisticsTeam:
         if self.team == HOME:
-            return self.game.game_data.home_statistics
+            return self.game.home.statistics
         else:
-            return self.game.game_data.away_statistics
+            return self.game.away.statistics
 
     def get_player_statistics(self) -> StatisticsPLayer:
         if self.team == HOME:
-            return self.game.game_data.home_players_statistics[self.player]
+            return self.game.home.players_statistics[self.player]
         else:
-            return self.game.game_data.away_players_statistics[self.player]
+            return self.game.away.players_statistics[self.player]
 
     @abstractmethod
     def execute(self):
@@ -280,7 +281,7 @@ class Dispatch:
                 self.intercept_trigger(action)
 
     def intercept_trigger(self, action: StealBall):
-        data = action.game.game_data
+        game = action.game
 
         x, y = action.src
         player_src = action.game.field.grid[x][y].player
@@ -289,16 +290,13 @@ class Dispatch:
         x, y = action.dest
         player_dest = action.game.field.grid[x][y].player
 
+        props_h = [game.home.data[player_src].defending,
+                   game.home.data[player_src].mentality_interceptions]
+        props_a = [game.away.data[player_dest].movement_reactions,
+                   game.away.data[player_dest].skill_ball_control]
+
         if team == AWAY:
-            props_a = [data.home_players_data[player_src].defending,
-                       data.home_players_data[player_src].mentality_interceptions]
-            props_h = [data.home_players_data[player_dest].movement_reactions,
-                       data.home_players_data[player_dest].skill_ball_control]
-        else:
-            props_h = [data.home_players_data[player_src].defending,
-                       data.home_players_data[player_src].mentality_interceptions]
-            props_a = [data.home_players_data[player_dest].movement_reactions,
-                       data.home_players_data[player_dest].skill_ball_control]
+            props_a, props_h = props_h, props_a
 
         if self.duel(props_h, props_a) == team:
             action = StealBallTrigger(action)
@@ -306,7 +304,7 @@ class Dispatch:
             action.execute()
 
     def dribbling_trigger(self, action: StealBall):
-        data = action.game.game_data
+        game = action.game
 
         x, y = action.src
         player_src = action.game.field.grid[x][y].player
@@ -315,16 +313,13 @@ class Dispatch:
         x, y = action.dest
         player_dest = action.game.field.grid[x][y].player
 
+        props_h = [game.home.data[player_src].defending,
+                   game.home.data[player_src].pace]
+        props_a = [game.away.data[player_dest].pace,
+                   game.away.data[player_dest].dribbling]
+
         if team == AWAY:
-            props_a = [data.home_players_data[player_src].defending,
-                       data.home_players_data[player_src].pace]
-            props_h = [data.home_players_data[player_dest].pace,
-                       data.home_players_data[player_dest].dribbling]
-        else:
-            props_h = [data.home_players_data[player_src].defending,
-                       data.home_players_data[player_src].mentality_interceptions]
-            props_a = [data.home_players_data[player_dest].pace,
-                       data.home_players_data[player_dest].dribbling]
+            props_a, props_h = props_h, props_a
 
         if self.duel(props_h, props_a) == team:
             action = StealBallTrigger(action)
@@ -332,7 +327,7 @@ class Dispatch:
             action.execute()
         else:
             rnd = randint(
-                data.home_players_data[player_src].mentality_aggression, 100)
+                game.home.data[player_src].mentality_aggression, 100)
             if rnd >= 90 and rnd < 95:
                 action = AggressionTrigger(action, 0, team)
                 self.stack.append(action)
@@ -347,7 +342,7 @@ class Dispatch:
                 action.execute()
 
     def shoot_trigger(self, action: Shoot):
-        data = action.game.game_data
+        game = action.game
 
         x, y = action.src
         player = action.game.field.grid[x][y].player
@@ -356,17 +351,12 @@ class Dispatch:
         x, y = action.game.field.goal_h if team == AWAY else action.game.field.goal_a
         gk = action.game.field.grid[x][y].player
 
-        props_h = []
-        props_a = []
+        props_h = [game.home.data[player].shots]
+        props_a = [game.home.data[gk].goal_keep_reflexes,
+                   game.home.data[gk].goal_keep_diving]
 
         if team == AWAY:
-            props_a = [data.home_players_data[player].shots]
-            props_h = [data.home_players_data[gk].goal_keep_reflexes,
-                       data.home_players_data[gk].goal_keep_diving]
-        else:
-            props_h = [data.home_players_statistics[player].shots]
-            props_a = [data.away_players_data[gk].goal_keep_reflexes,
-                       data.away_players_data[gk].goal_keep_diving]
+            props_a, props_h = props_h, props_a
 
         if self.duel(props_h, props_a) == team:
             action = GoalTrigger(action.game, team)

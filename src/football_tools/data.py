@@ -1,6 +1,33 @@
-from typing import List, Dict
-from .player_data import PlayerData
-from football_agent.team import Team
+from typing import List, Dict, Tuple
+from pandas import DataFrame
+from typing import List,  Dict
+
+AWAY = 'A'
+HOME = 'H'
+
+
+class PlayerData():
+    def __init__(self, df: DataFrame):
+        self.short_name: str = df['short_name']
+        self.club_name: str = df['club_name']
+        self.player_positions: str = df['player_positions']
+        self.overall: int = df['overall']
+        self.pace: int = df['pace']
+        self.shooting: int = df['shooting']
+        self.passing: int = df['passing']
+        self.dribbling: int = df['dribbling']
+        self.defending: int = df['defending']
+        self.physic: int = df['physic']
+        self.attacking_finishing: int = df['attacking_finishing']
+        self.mentality_vision: int = df['mentality_vision']
+        self.power_stamina: int = df['power_stamina']
+        self.mentality_aggression: int = df['mentality_aggression']
+        self.mentality_interceptions: int = df['mentality_interceptions']
+        self.movement_reactions: int = df['movement_reactions']
+        self.dorsal: int = df['club_jersey_number']
+        self.goal_keep_diving: int = df['goal_keep_diving']
+        self.goal_keep_reflexes: int = df['goal_keep_reflexes']
+        self.skill_ball_control: int = df['skill_ball_control']
 
 
 class StatisticsPLayer:
@@ -28,20 +55,14 @@ class StatisticsTeam:
         self.lineup: List[str] = []
 
 
-class GameData:
-    def __init__(self, home: Team, away: Team) -> None:
-        self.home = home
-        self.away = away
-        self.home_statistics = StatisticsTeam(home.name)
-        self.away_statistics = StatisticsTeam(away.name)
-        self.home_players_statistics: Dict[int, StatisticsPLayer] = {}
-        self.away_players_statistics: Dict[int, StatisticsPLayer] = {}
-        self.home_players_data: Dict[int, PlayerData] = {}
-        self.away_players_data: Dict[int, PlayerData] = {}
+class TeamData:
+    def __init__(self, name: str, line_up: List[Tuple[int, int, int]], data: List[PlayerData]) -> None:
+        self.name = name
+        self.line_up: List[Tuple[int, int, int]] = line_up
+        self.data: Dict[int, PlayerData] = {}
+        self.statistics: StatisticsTeam = StatisticsTeam(name)
+        self.players_statistics: Dict[int, StatisticsPLayer] = {}
 
-        for player in home.players:
-            self.home_players_statistics[player.dorsal] = StatisticsPLayer()
-            self.home_players_data[player.dorsal] = player
-        for player in away.players:
-            self.away_players_statistics[player.dorsal] = StatisticsPLayer()
-            self.away_players_data[player.dorsal] = player
+        for player in data:
+            self.players_statistics[player.dorsal] = StatisticsPLayer()
+            self.data[player.dorsal] = player
