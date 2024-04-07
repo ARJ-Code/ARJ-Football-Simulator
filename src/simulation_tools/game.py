@@ -20,7 +20,7 @@ class GridField:
         if self.player - 1:
             return '   '
         return f'{f"0"  if self.player < 10 else ""}{self.player}-{self.team}'
-    
+
     def __eq__(self, __value: object) -> bool:
         return self.row == __value.row and self.col == __value.col
 
@@ -75,13 +75,14 @@ class Field:
 
     def distance_goal_b(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_b)
-      
+
     def find_player(self, dorsal: int, team: str) -> GridField:
         for row in self.grid:
             for grid in row:
                 if grid.player == dorsal and grid.team == team:
                     return grid
-        raise Exception(f"There is no player with the dorsal {dorsal} of the {team} team on the field")
+        raise Exception(
+            f"There is no player with the dorsal {dorsal} of the {team} team on the field")
 
     def neighbor_grids(self, src: GridField, max_distance: double) -> List[GridField]:
         x, y = (src.row, src.col)
@@ -98,13 +99,13 @@ class Field:
             return self.goal_h
         else:
             return self.goal_a
-        
+
     def enemy_goal(self, team: str) -> List[Tuple[int, int]]:
         if team == HOME:
             return self.goal_a
         else:
             return self.goal_h
-          
+
     def __str__(self) -> str:
         field_str = ""
         for r in range(self.rows):
@@ -115,8 +116,8 @@ class Field:
 
 
 class Game:
-    def __init__(self, home: Tuple[str, List[int]], visitor: Tuple[str, List[int]], game_data: GameData):
-        self.home: Tuple[str, List[int]] = home
-        self.visitor: Tuple[str, List[int]] = visitor
+    def __init__(self, home: List[Tuple[int, int, int]], visitor: List[Tuple[int, int, int]], game_data: GameData):
+        self.home: List[Tuple[int, int, int]] = home
+        self.visitor: List[Tuple[int, int, int]] = visitor
         self.field: Field = Field()
         self.game_data: GameData = game_data

@@ -2,7 +2,7 @@ import pandas as pd
 import json
 
 
-def filter_atributes(json_data: str):
+def filter_attributes(json_data: str):
     data_list = json.loads(json_data)
     formatted_data = [{key: player[key]
                        for key in selected_keys if key in player} for player in data_list]
