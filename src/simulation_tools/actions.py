@@ -2,18 +2,38 @@ from abc import ABC, abstractmethod
 from .game import Game
 from typing import Tuple
 from typing import List
-from .football_agent import Player
 from .team import HOME, AWAY
+from .data import StatisticsTeam, StatisticsPLayer
+from .player_data import PlayerData
 from random import random, randint
 
 
 class Action(ABC):
-    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: Player, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: int, game: Game) -> None:
         super().__init__()
         self.src: Tuple[int, int] = src
         self.dest: Tuple[int, int] = dest
-        self.player: Player = player
+        self.player: int = player
+        self.team: str = ''
         self.game: Game = game
+
+    def get_player_data(self) -> PlayerData:
+        if self.team == HOME:
+            return self.game.game_data.home_players_data[self.player]
+        else:
+            return self.game.game_data.away_players_data[self.player]
+
+    def get_statistics(self) -> StatisticsTeam:
+        if self.team == HOME:
+            return self.game.game_data.home_statistics
+        else:
+            return self.game.game_data.away_statistics
+
+    def get_player_statistics(self) -> StatisticsPLayer:
+        if self.team == HOME:
+            return self.game.game_data.home_players_statistics[self.player]
+        else:
+            return self.game.game_data.away_players_statistics[self.player]
 
     @abstractmethod
     def execute(self):
@@ -22,56 +42,82 @@ class Action(ABC):
     @abstractmethod
     def reset(self):
         pass
+
+
+class Nothing(Action):
+    def __init__(self) -> None:
+        super().__init__((0, 0), (0, 0), -1, '', None)
+
+    def execute(self):
+        return super().execute()
+
+    def reset(self):
+        return super().reset()
 
 
 class Pass(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: Player, game: Game) -> None:
-        super().__init__(src, dest, player, game)
+    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, dest, player, team, game)
 
     def execute(self):
-        self.player.stamina -= 1
+        self.get_player_data().power_stamina -= 1
         self.game.field.move_ball(self.src, self.dest)
 
     def reset(self):
-        self.player.stamina += 1
+        self.get_player_data().power_stamina += 1
         self.game.field.move_ball(self.dest, self.src)
 
 
 class MoveWithBall(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: Player, game: Game) -> None:
-        super().__init__(src, dest, player, game)
+    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, dest, player, team, game)
 
     def execute(self):
-        self.player.stamina -= 2
-        self.game.field.move_player(self.src, self.dest, self.player)
+        self.get_player_data().power_stamina -= 2
+        self.game.field.move_player(self.src, self.dest)
+        self.game.field.move_ball(self.src, self.dest)
 
     def reset(self):
-        self.player.stamina += 2
-        self.game.field.move_player(self.dest, self.src, self.player)
+        self.get_player_data().power_stamina += 2
+        self.game.field.move_player(self.dest, self.src)
+        self.game.field.move_ball(self.dest, self.src)
+
+
+class Move(Action):
+    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, dest, player, team, game)
+
+    def execute(self):
+        self.get_player_data().power_stamina -= 2
+        self.game.field.move_player(self.src, self.dest)
+
+    def reset(self):
+        self.get_player_data().power_stamina += 2
+        self.game.field.move_player(self.dest, self.src)
 
 
 class Dribble(MoveWithBall):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: Player, game: Game) -> None:
-        super().__init__(src, dest, player, game)
+    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, dest, player, team, game)
 
     def execute(self):
-        self.player.stamina -= 1
+        self.get_player_data().power_stamina -= 1
         return super().execute(self.game)
 
     def reset(self):
-        self.player.stamina += 1
+        self.get_player_data().power_stamina += 1
         return super().execute(self.game)
 
 
 class StealBall(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: Player, game: Game) -> None:
-        super().__init__(src, dest, player, game)
+    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, dest, player, team, game)
 
     def execute(self):
-        self.player.stamina -= 1
+        self.get_player_data().power_stamina -= 1
 
     def reset(self):
-        self.player.stamina += 1
+        self.get_player_data().power_stamina += 1
 
 
 class StealBallTrigger(Action):
@@ -86,13 +132,15 @@ class StealBallTrigger(Action):
 
 
 class Shoot(Action):
-    def __init__(self, src: Tuple[int], player: Player, game: Game) -> None:
-        super().__init__(src, (0, 0), player, game)
+    def __init__(self, src: Tuple[int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, (0, 0), player, team, game)
         self.ok: bool = False
 
     def execute(self):
+        self.get_player_data().power_stamina -= 2
+
         x, y = self.src
-        q = self.player.data.shooting*2/100 / \
+        q = self.get_player_data().shooting*2/100 / \
             ((self.game.field.distance_goal_h(self.src)
              if self.game.field[x][y].team == AWAY else self.game.field.distance_goal_b(self.src))+1)
 
@@ -105,6 +153,8 @@ class Shoot(Action):
             self.game.field.move_ball(self.src, self.game.field.goal_a)
 
     def reset(self):
+        self.get_player_data().power_stamina += 2
+
         x, y = self.src
 
         self.player.stamina -= 2
@@ -115,9 +165,8 @@ class Shoot(Action):
 
 
 class GoalTrigger(Action):
-    def __init__(self, action: Shoot, team: str) -> None:
-        super().__init__((0, 0), (0, 0), action.player, action.game)
-        self.team: str = team
+    def __init__(self, action: Shoot) -> None:
+        super().__init__((0, 0), (0, 0), action.player, action.team, action.game)
 
     def execute(self):
         if self.team == AWAY:
@@ -133,10 +182,9 @@ class GoalTrigger(Action):
 
 
 class AggressionTrigger(Action):
-    def __init__(self, action: StealBall, level: int, team: str) -> None:
-        super().__init__(action.src, action.dest, action.player, action.game)
+    def __init__(self, action: StealBall, level: int) -> None:
+        super().__init__(action.src, action.dest, action.player, action.team, action.game)
         self.level: int = level
-        self.team: str = team
         self.break_play: bool = False
         x, y = self.src
         dorsal = self.game.field[x][y].player
@@ -146,74 +194,76 @@ class AggressionTrigger(Action):
     def execute(self):
         x, y = self.src
 
-        if self.team == HOME:
-            self.game.game_data.home_statistics.fouls += 1
-            self.game.game_data.home_players_statistics[self.dorsal].fouls += 1
-        else:
-            self.game.game_data.away_statistics.fouls += 1
-            self.game.game_data.away_players_statistics[self.dorsal].fouls += 1
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
+        team_statistics.fouls += 1
+        player_statistics.fouls += 1
 
         if self.level == 1:
-            if self.team == HOME:
-                self.game.game_data.home_statistics.yellow_cards += 1
-                self.game.game_data.home_players_statistics[self.dorsal].yellow_cards += 1
-            else:
-                self.game.game_data.away_statistics.yellow_cards += 1
-                self.game.game_data.away_players_statistics[self.dorsal].yellow_cards += 1
+            team_statistics.yellow_cards += 1
+            player_statistics.yellow_cards += 1
 
         if self.level == 2:
-            if self.team == HOME:
-                self.game.game_data.home_statistics.red_cards += 1
-                self.game.game_data.home_players_statistics[self.dorsal].red_cards += 1
-            else:
-                self.game.game_data.away_statistics.red_cards += 1
-                self.game.game_data.away_players_statistics[self.dorsal].red_cards += 1
+            team_statistics.red_cards += 1
+            player_statistics.red_cards += 1
 
-        if self.team == HOME:
-            if self.game.game_data.home_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.home_players_statistics[self.dorsal].yellow_cards == 2:
-                self.game.field[x][y].player = -1
-                self.game.field[x][y].team = ''
-                self.break_play = True
-        else:
-            if self.game.game_data.away_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.away_players_statistics[self.dorsal].yellow_cards == 2:
-                self.game.field[x][y].player = -1
-                self.game.field[x][y].team = ''
-                self.break_play = True
+        if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
+            self.game.field[x][y].player = -1
+            self.game.field[x][y].team = ''
+            self.break_play = True
 
     def reset(self):
         x, y = self.src
 
-        if self.team == HOME:
-            if self.game.game_data.home_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.home_players_statistics[self.dorsal].yellow_cards == 2:
-                self.game.field[x][y].player = self.dorsal
-                self.game.field[x][y].team = self.team
-        else:
-            if self.game.game_data.away_players_statistics[self.dorsal].red_cards == 1 or self.game.game_data.away_players_statistics[self.dorsal].yellow_cards == 2:
-                self.game.field[x][y].player = self.dorsal
-                self.game.field[x][y].team = self.team
+        if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
+            self.game.field[x][y].player = self.player
+            self.game.field[x][y].team = self.team
+            self.break_play = True
 
-        if self.team == HOME:
-            self.game.game_data.home_statistics.fouls -= 1
-            self.game.game_data.home_players_statistics[self.dorsal].fouls -= 1
-        else:
-            self.game.game_data.away_statistics.fouls -= 1
-            self.game.game_data.away_players_statistics[self.dorsal].fouls -= 1
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
+        team_statistics.fouls -= 1
+        player_statistics.fouls -= 1
 
         if self.level == 1:
-            if self.team == HOME:
-                self.game.game_data.home_statistics.yellow_cards -= 1
-                self.game.game_data.home_players_statistics[self.dorsal].yellow_cards -= 1
-            else:
-                self.game.game_data.away_statistics.yellow_cards -= 1
-                self.game.game_data.away_players_statistics[self.dorsal].yellow_cards -= 1
+            team_statistics.yellow_cards -= 1
+            player_statistics.yellow_cards -= 1
 
         if self.level == 2:
-            if self.team == HOME:
-                self.game.game_data.home_statistics.red_cards -= 1
-                self.game.game_data.home_players_statistics[self.dorsal].red_cards -= 1
-            else:
-                self.game.game_data.away_statistics.red_cards -= 1
-                self.game.game_data.away_players_statistics[self.dorsal].red_cards -= 1
+            team_statistics.red_cards -= 1
+            player_statistics.red_cards -= 1
+
+
+class ReorganizeLineUp(Action):
+    def __init__(self, game: Game, line_up: List[Tuple[int, int, int]], team: str) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, game)
+        self.team: str = team
+        self.line_up: List[Tuple[int, int, int]] = line_up
+        self.memory: List[Tuple[int, int, int]] = []
+
+    def execute(self):
+        for l in self.game.field.grid:
+            for n in l:
+                if self.team != n.team:
+                    continue
+                self.memory.append((n.player, n.row, n.col))
+                n.player = -1
+                n.team = ''
+
+        for d, r, c in self.line_up:
+            self.game.field.grid[r][c].player = d
+            self.game.field.grid[r][c].team = self.team
+
+    def reset(self):
+        for _, r, c in self.line_up:
+            self.game.field.grid[r][c].player = -1
+            self.game.field.grid[r][c].team = ''
+
+        for d, r, c in self.memory:
+            self.game.field.grid[r][c].player = d
+            self.game.field.grid[r][c].team = self.team
 
 
 class Dispatch:
@@ -221,17 +271,14 @@ class Dispatch:
         self.stack: List[Action] = []
 
     def dispatch(self, action: Action):
-        attack = True
+        self.stack.append(action)
+        action.execute()
 
         if isinstance(action, StealBall):
-            attack = False
-
-        if attack:
-            self.stack.append(action)
-            if isinstance(action, Shoot) and action.ok:
-                self.shoot_trigger(action)
-
-            return
+            if isinstance(self.stack[-1], Dribble):
+                self.dribbling_trigger(action)
+            else:
+                self.intercept_trigger(action)
 
     def intercept_trigger(self, action: StealBall):
         data = action.game.game_data
@@ -259,7 +306,7 @@ class Dispatch:
             self.stack.append(action)
             action.execute()
 
-    def def_dribbling_trigger(self, action: StealBall):
+    def dribbling_trigger(self, action: StealBall):
         data = action.game.game_data
 
         x, y = action.src
