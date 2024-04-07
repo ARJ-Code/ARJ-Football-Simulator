@@ -56,7 +56,7 @@ class Nothing(Action):
 
 
 class Pass(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, dest, player, team, game)
 
     def execute(self):
@@ -69,7 +69,7 @@ class Pass(Action):
 
 
 class MoveWithBall(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, dest, player, team, game)
 
     def execute(self):
@@ -84,7 +84,7 @@ class MoveWithBall(Action):
 
 
 class Move(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, dest, player, team, game)
 
     def execute(self):
@@ -97,7 +97,7 @@ class Move(Action):
 
 
 class Dribble(MoveWithBall):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, dest, player, team, game)
 
     def execute(self):
@@ -110,7 +110,7 @@ class Dribble(MoveWithBall):
 
 
 class StealBall(Action):
-    def __init__(self, src: Tuple[int], dest: Tuple[int], player: int, team: str, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, dest, player, team, game)
 
     def execute(self):
@@ -132,7 +132,7 @@ class StealBallTrigger(Action):
 
 
 class Shoot(Action):
-    def __init__(self, src: Tuple[int], player: int, team: str, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, (0, 0), player, team, game)
         self.ok: bool = False
 

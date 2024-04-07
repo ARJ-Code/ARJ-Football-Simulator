@@ -2,7 +2,7 @@ from abc import ABC
 
 from .actions import *
 from football_tools.game import *
-from typing import List, Tuple
+from typing import List, Tuple,Generator
 
 from football_agent.strategies import Strategy
 
@@ -24,55 +24,64 @@ class Player(FootballAgent):
         self.dorsal = dorsal
         self.team = team
 
-    def get_perceptions(self, game: Game):
+    def play(self, game: Game):
+        visible_grids, p_grid = self.get_perceptions(game)
+
+        actions = self.construct_actions(game, visible_grids, p_grid)
+
+        action = self.select_action(actions, game)
+
+        return action
+
+    def get_perceptions(self, game: Game) -> Tuple[List[GridField], GridField]:
         p_grid: GridField = game.field.find_player(self.dorsal, self.team)
-        visible_grids: List[GridField] = game.field.neighbor_grids(
-            p_grid, self.vision)
-        self_goal: List[Tuple[int, int]] = game.field.self_goal(self.team)
-        enemy_goal: List[Tuple[int, int]] = game.field.enemy_goal(self.team)
+        visible_grids: List[GridField] = game.field.neighbor_grids(p_grid, self.vision)
 
-        empty_contiguous_grids: List[GridField] = []
+        return visible_grids, p_grid
+    
+    def is_contiguous(self, f: GridField, s: GridField):
+        return abs(f.row - s.row) == 1 or abs(f.col - s.col) == 1
+
+    def empty_contiguous_grids(self, visible_grids: List[GridField], p_grid: GridField) -> Generator[GridField, None, None]:
         for g in visible_grids:
-            if not g.is_empty and self.contiguous_grids(g, (p_grid.row, p_grid.col)):
-                empty_contiguous_grids.append(g)
-
-        friendly_grids: List[GridField] = []
+            if self.is_contiguous(p_grid, g) and g.is_empty():
+                yield g
+    
+    def friendly_grids(self, visible_grids: List[GridField]) -> Generator[GridField, None, None]:
         for g in visible_grids:
-            if self.is_friendly_grid(self.team, g):
-                friendly_grids.append(g)
-
-        enemy_contiguous_grids: List[GridField] = []
+            if g.team is not None and g.team == self.team:
+                yield g
+    
+    def enemy_contiguous_grids(self, visible_grids: List[GridField], p_grid: GridField) -> Generator[GridField, None, None]:
         for g in visible_grids:
-            if self.is_enemy_grid(self.team, g) and self.contiguous_grids(g, (p_grid.row, p_grid.col)):
-                enemy_contiguous_grids.append(g)
-
-        actions: List[Action] = self.construct_actions(
-            game, p_grid.ball, empty_contiguous_grids, friendly_grids, enemy_contiguous_grids)
-
-    def contiguous_grids(self, f: Tuple[int, int], dest: Tuple[int, int]) -> bool:
-        return abs(f[0] - dest[0]) == 1 or abs(f[1] - dest[1]) == 1
-
-    def is_friendly_grid(self, g: GridField) -> bool:
-        return g.team is not None and g.team == self.team
-
-    def is_enemy_grid(self, team: str, g: GridField) -> bool:
-        return g.team is not None and g.team != self.team
-
-    def construct_actions(self, game: Game, has_ball: bool, empty_contiguous_grids: List[GridField],
-                          friendly_grids: List[GridField], enemy_contiguous_grids: List[GridField]) -> List[Action]:
+            if g.team is not None and g.team != self.team and self.is_contiguous(p_grid, g):
+                yield g
+    
+    def construct_actions(self, game: Game, visible_grids: List[GridField], p_grid: GridField) -> List[Action]:
         actions: List[Action] = []
-        if not has_ball:
-            for grid in enemy_contiguous_grids:
+
+        actions.append(Nothing())
+
+        if not p_grid.ball:
+            src = (p_grid.row, p_grid.col)
+            for grid in self.enemy_contiguous_grids(visible_grids, p_grid):
                 if grid.ball:
-                    actions.append(StealBall())
+                    dest = (grid.row, grid.col)
+                    actions.append(StealBall(src, dest, self.dorsal, self.team, game))
                     break
+            for grid in self.empty_contiguous_grids(visible_grids, p_grid):
+                dest = (grid.row, grid.col)
+                actions.append(Move(src, dest, self.dorsal, self.team, game))
         else:
-            for grid in empty_contiguous_grids:
-                actions.append(MoveWithBall())
-                actions.append(Dribble())
-            for grid in friendly_grids:
-                actions.append(Pass())
-            actions.append(Shoot())
+            src = (p_grid.row, p_grid.col)
+            for grid in self.empty_contiguous_grids(visible_grids, p_grid):
+                dest = (grid.row, grid.col)
+                actions.append(MoveWithBall(src, dest, self.dorsal, self.team, game))
+                actions.append(Dribble(src, dest, self.dorsal, self.team, game))
+            for grid in self.friendly_grids(visible_grids):
+                dest = (grid.row, grid.col)
+                actions.append(Pass(src, dest, self.dorsal, self.team, game))
+            actions.append(Shoot(src, self.dorsal, self.team, game))
 
         return actions
 

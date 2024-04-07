@@ -10,8 +10,10 @@ class GridField:
         self.col: int = col
         self.ball: bool = ball
         self.player: int = player
-        self.is_empty: bool = player == -1
         self.team: str = team
+
+    def is_empty(self) -> bool:
+        return self.player == -1
 
     def __str__(self) -> str:
         if self.player - 1:
