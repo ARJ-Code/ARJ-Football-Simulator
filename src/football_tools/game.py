@@ -5,7 +5,7 @@ from .data import HOME, AWAY, TeamData
 
 
 class GridField:
-    def __init__(self, row: int, col: int, player: int, ball: bool = False, team: str = '') -> None:
+    def __init__(self, row: int, col: int, player: int = -1, ball: bool = False, team: str = '') -> None:
         self.row: int = row
         self.col: int = col
         self.ball: bool = ball
@@ -16,8 +16,8 @@ class GridField:
         return self.player == -1
 
     def __str__(self) -> str:
-        if self.player - 1:
-            return '   '
+        if self.player == - 1:
+            return ' ** '
         return f'{f"0"  if self.player < 10 else ""}{self.player}-{self.team}'
 
     def __eq__(self, __value: object) -> bool:
@@ -25,11 +25,11 @@ class GridField:
 
 
 class Field:
-    def __init__(self, rows: int = 20, columns: int = 13):
+    def __init__(self, rows: int = 20, columns: int = 11):
         self.rows = rows
         self.columns = columns
         self.grid: List[List[GridField]] = [
-            [GridField(r, c, False) for r in range(columns)] for c in range(rows)]
+            [GridField(r, c) for r in range(columns)] for c in range(rows)]
         self.goal_h = [(0, columns // 2-1), (0, columns // 2),
                        (0, columns // 2 + 1)]
         self.goal_a = [(rows - 1, columns // 2 - 1),
@@ -42,6 +42,9 @@ class Field:
         for d, r, c in line_up_a:
             self.grid[r][c].player = d
             self.grid[r][c].team = AWAY
+
+        _, r, c = line_up_a[-1]
+        self.grid[r][c].ball = True
 
     def move_ball(self, src: Tuple[int, int], dest: Tuple[int, int]):
         x, y = src
@@ -119,3 +122,4 @@ class Game:
         self.field: Field = Field()
         self.home: TeamData = home
         self.away: TeamData = away
+        self.field.conf_line_ups(home.line_up, away.line_up)

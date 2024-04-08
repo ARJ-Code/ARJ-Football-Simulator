@@ -25,8 +25,8 @@ class PlayerData():
         self.mentality_interceptions: int = df['mentality_interceptions']
         self.movement_reactions: int = df['movement_reactions']
         self.dorsal: int = df['club_jersey_number']
-        self.goal_keep_diving: int = df['goal_keep_diving']
-        self.goal_keep_reflexes: int = df['goal_keep_reflexes']
+        self.goal_keep_diving: int = df['goalkeeping_diving']
+        self.goal_keep_reflexes: int = df['goalkeeping_reflexes']
         self.skill_ball_control: int = df['skill_ball_control']
 
 

@@ -1,15 +1,18 @@
 from football_tools.game import Game
-from football_agent.team import HOME, Team
-from typing import Generator
+from football_tools.data import TeamData
+from football_agent.team import HOME, AWAY, TeamAgent
+from typing import Generator, Tuple
 
 
 class FootballSimulation:
-    def __init__(self, home: Team, away: Team) -> None:
-        self.home: Team = home
-        self.away: Team = away
-        self.game: Game = Game(home.line_up, away.line_up)
+    def __init__(self, home: Tuple[TeamAgent, TeamData], away: Tuple[TeamAgent, TeamData]) -> None:
+        self.home: TeamAgent = home[0]
+        self.away: TeamAgent = away[0]
+        self.game: Game = Game(home[1], away[1])
 
     def simulate(self, actions: int = 180) -> Generator[str, None, None]:
+        yield str(self.game.field)
+
         for _ in range(actions):
             self.instance_time()
             yield str(self.game.field)
@@ -26,7 +29,7 @@ class FootballSimulation:
 
         if team == HOME:
             self.home.players[player_with_ball].play(self.game)
-        else:
+        if n.team == AWAY:
             self.away.players[player_with_ball].play(self.game)
 
         for l in self.game.field.grid:
@@ -34,5 +37,5 @@ class FootballSimulation:
                 if not n.ball:
                     if n.team == HOME:
                         self.home.players[n.player].play(self.game)
-                    else:
+                    if n.team == AWAY:
                         self.away.players[n.player].play(self.game)

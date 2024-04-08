@@ -14,11 +14,11 @@ class FootballAgent(ABC):
         self.strategy = strategy
 
     def select_action(self, actions: List[Action], game: Game) -> Action:
-        return self.strategy.select_action(actions)
+        return self.strategy.select_action(actions,game)
 
 
 class Player(FootballAgent):
-    def __init__(self, stamina: int, vision: int, dorsal: int, team: str, strategy: Strategy) -> None:
+    def __init__(self,  vision: int, dorsal: int, team: str, strategy: Strategy) -> None:
         super().__init__(strategy)
         self.vision: int = vision % 10
         self.dorsal = dorsal
