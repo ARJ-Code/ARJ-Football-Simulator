@@ -73,11 +73,13 @@ class Player(FootballAgent):
                         StealBall(src, dest, self.dorsal, self.team, game))
                     break
             for grid in self.empty_contiguous_grids(visible_grids, p_grid):
+                if src == (1,5) or src == (18,5): break
                 dest = (grid.row, grid.col)
                 actions.append(Move(src, dest, self.dorsal, self.team, game))
         else:
             src = (p_grid.row, p_grid.col)
             for grid in self.empty_contiguous_grids(visible_grids, p_grid):
+                if src == (1,5) or src == (18,5): break
                 dest = (grid.row, grid.col)
                 actions.append(MoveWithBall(
                     src, dest, self.dorsal, self.team, game))

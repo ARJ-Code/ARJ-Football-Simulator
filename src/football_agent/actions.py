@@ -146,11 +146,7 @@ class Shoot(Action):
 
         self.ok = random() <= q
 
-        self.player.stamina -= 2
-        if self.game.field.grid[x][y].team == AWAY:
-            self.game.field.move_ball(self.src, self.game.field.goal_h)
-        else:
-            self.game.field.move_ball(self.src, self.game.field.goal_a)
+        
 
     def reset(self):
         self.get_player_data().power_stamina += 2
@@ -165,14 +161,14 @@ class Shoot(Action):
 
 
 class GoalTrigger(Action):
-    def __init__(self, action: Shoot) -> None:
-        super().__init__((0, 0), (0, 0), action.player, action.team, action.game)
+    def __init__(self, action: Shoot, team: str) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, action.game)
 
     def execute(self):
         if self.team == AWAY:
-            self.game.statistics_team_a.goals += 1
+            self.game.away.statistics.goals += 1
         else:
-            self.game.statistics_team_h.goals += 1
+            self.game.home.statistics.goals += 1
 
     def reset(self):
         if self.team == AWAY:
@@ -266,10 +262,9 @@ class ReorganizeField(Action):
         if self.has_ball:
             r, c = -1, -1
             if self.team == HOME:
-                r, c = self.game.field.goal_h[1]
+                r, c = 18,5
             else:
-                r, c = self.game.field.goal_a[1]
-
+                r, c = 1,5
             self.game.field.grid[r][c].ball = True
 
     def reset(self):
@@ -299,6 +294,16 @@ class Dispatch:
                 self.dribbling_trigger(action)
             else:
                 self.intercept_trigger(action)
+        if isinstance(action,Shoot):
+            if action.ok:
+                self.shoot_trigger(action)
+
+            action_h = ReorganizeField(action.game, HOME, action.team != HOME)
+            action_a = ReorganizeField(action.game, AWAY, action.team != AWAY)  
+            self.stack.append(action_h)
+            self.stack.append(action_a)  
+            action_h.execute()
+            action_a.execute()
 
     def intercept_trigger(self, action: StealBall):
         game = action.game
@@ -310,25 +315,26 @@ class Dispatch:
         x, y = action.dest
         player_dest = action.game.field.grid[x][y].player
 
-        props_h = [game.home.data[player_src].defending,
-                   game.home.data[player_src].mentality_interceptions]
-        props_a = [game.away.data[player_dest].movement_reactions,
-                   game.away.data[player_dest].skill_ball_control]
-
-        if team == AWAY:
-            props_a, props_h = props_h, props_a
+        if action.team == HOME:
+            props_h = [game.home.data[player_src].defending,
+                    game.home.data[player_src].mentality_interceptions]
+            props_a = [game.away.data[player_dest].movement_reactions,
+                    game.away.data[player_dest].skill_ball_control]
+        else:
+            props_h = [game.home.data[player_dest].defending,
+                    game.home.data[player_dest].mentality_interceptions]
+            props_a = [game.away.data[player_src].movement_reactions,
+                    game.away.data[player_src].skill_ball_control]
+            
 
         if self.duel(props_h, props_a) == team:
             action = StealBallTrigger(action)
-            action_h = ReorganizeField(action.game, HOME, team != HOME)
-            action_a = ReorganizeField(action.game, AWAY, team != AWAY)
+            
 
             self.stack.append(action)
-            self.stack.append(action_h)
-            self.stack.append(action_a)
+            
             action.execute()
-            action_h.execute()
-            action_a.execute()
+            
 
     def dribbling_trigger(self, action: StealBall):
         game = action.game
@@ -370,25 +376,33 @@ class Dispatch:
 
     def shoot_trigger(self, action: Shoot):
         game = action.game
-
         x, y = action.src
         player = action.game.field.grid[x][y].player
         team = action.game.field.grid[x][y].team
 
-        x, y = action.game.field.goal_h if team == AWAY else action.game.field.goal_a
+        x, y = (1,5) if team == AWAY else (18,5)
         gk = action.game.field.grid[x][y].player
 
-        props_h = [game.home.data[player].shots]
-        props_a = [game.home.data[gk].goal_keep_reflexes,
-                   game.home.data[gk].goal_keep_diving]
-
         if team == AWAY:
-            props_a, props_h = props_h, props_a
+            props_a = [game.away.data[player].shooting]
+
+            props_h = [game.home.data[gk].goal_keep_reflexes,
+                       game.home.data[gk].goal_keep_diving]
+
+        else:
+            props_h = [game.home.data[player].shooting]
+
+            props_a = [game.away.data[gk].goal_keep_reflexes,
+                       game.away.data[gk].goal_keep_diving]    
 
         if self.duel(props_h, props_a) == team:
-            action = GoalTrigger(action.game, team)
+            action = GoalTrigger(action, team)
             self.stack.append(action)
             action.execute()
+
+        
+
+
 
     def duel(self, props_h: List[int], props_a: List[int]) -> str:
         mh = sum(props_h)/len(props_h)

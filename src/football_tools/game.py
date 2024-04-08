@@ -30,9 +30,9 @@ class Field:
         self.columns = columns
         self.grid: List[List[GridField]] = [
             [GridField(r, c) for c in range(columns)] for r in range(rows)]
-        self.goal_h = [(0, columns // 2-1), (0, columns // 2),
+        self.goal_a = [(0, columns // 2-1), (0, columns // 2),
                        (0, columns // 2 + 1)]
-        self.goal_a = [(rows - 1, columns // 2 - 1),
+        self.goal_h = [(rows - 1, columns // 2 - 1),
                        (rows - 1, columns // 2), (rows - 1, columns // 2 + 1)]
 
     def conf_line_ups(self, line_up_h: List[Tuple[int, int, int]], line_up_a: List[Tuple[int, int, int]]):

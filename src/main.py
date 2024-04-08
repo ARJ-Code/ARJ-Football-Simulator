@@ -5,6 +5,7 @@ from football_agent.team import TeamAgent
 from football_tools.data import TeamData
 from football_simulator.build_data import get_data
 from football_simulator.simulation import FootballSimulation
+import time
 
 df = pd.read_csv('data/players_22.csv')
 home_n = 'FC Barcelona'
@@ -28,6 +29,19 @@ away_a = TeamAgent(
 
 sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 
+import os
+
+def clear_console():
+    if os.name == "posix":
+        os.system("clear")
+    elif os.name in ["ce", "nt", "dos"]:
+        os.system("cls")
+
+a = time.time()
 for s in sim.simulate():
-    print(s)
+    pass
+    # time.sleep(0.5)
+    # clear_console()
+    # print(s)
     
+print (abs(a-time.time()))
