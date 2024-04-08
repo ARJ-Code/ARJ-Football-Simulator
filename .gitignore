@@ -161,3 +161,4 @@ cython_debug/
 
 data/players_fc_barcelona.json
 data/players_real_madrid.json
+data/players_22.csv
