@@ -122,7 +122,7 @@ class StealBall(Action):
 
 class StealBallTrigger(Action):
     def __init__(self, action: StealBall) -> None:
-        super().__init__(action.src, action.dest, action.player, action.team, action.game)
+        super().__init__(action.dest, action.src, action.player, action.team, action.game)
 
     def execute(self):
         self.game.field.move_ball(self.src, self.dest)
@@ -142,7 +142,7 @@ class Shoot(Action):
         x, y = self.src
         q = self.get_player_data().shooting*2/100 / \
             ((self.game.field.distance_goal_h(self.src)
-             if self.game.field[x][y].team == AWAY else self.game.field.distance_goal_b(self.src))+1)
+             if self.game.field.grid[x][y].team == AWAY else self.game.field.distance_goal_a(self.src))+1)
 
         self.ok = random() <= q
 
@@ -253,7 +253,7 @@ class ReorganizeField(Action):
                     continue
                 if n.ball:
                     n.ball = False
-                    self.memory_ball = (r, c)
+                    self.memory_ball = (n.row, n.col)
 
                 self.memory.append((n.player, n.row, n.col, n.team))
                 n.player = -1
@@ -385,7 +385,6 @@ class Dispatch:
         if team == AWAY:
             props_a, props_h = props_h, props_a
 
-        return
         if self.duel(props_h, props_a) == team:
             action = GoalTrigger(action.game, team)
             self.stack.append(action)

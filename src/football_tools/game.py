@@ -17,8 +17,8 @@ class GridField:
 
     def __str__(self) -> str:
         if self.player == - 1:
-            return '** '
-        return f'\033{"[34m"if self.team==HOME else"[31m"}{f"0"  if self.player < 10 else ""}{self.player}\033[0m '
+            return '\033[32m**  \033[0m'
+        return f'\033{"[34m"if self.team==HOME else"[31m"}{f"0"  if self.player < 10 else ""}{self.player}\033[0m{"⚽" if self.ball else "  "}'
 
     def __eq__(self, __value: object) -> bool:
         return self.row == __value.row and self.col == __value.col
@@ -75,10 +75,10 @@ class Field:
 
         return math.sqrt((xs-xd)**2+(ys-yd)**2)
 
-    def distance_goal_a(self, src: Tuple[int, int]):
+    def distance_goal_h(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_h)
 
-    def distance_goal_b(self, src: Tuple[int, int]):
+    def distance_goal_a(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_a)
 
     def find_player(self, dorsal: int, team: str) -> GridField:
@@ -115,7 +115,7 @@ class Field:
         field_str = ""
         for r in range(self.rows):
             for c in range(self.columns):
-                field_str += str(self.grid[r][c])
+                field_str += str(self.grid[r][c])+' '
             field_str += "\n"
         return field_str
 

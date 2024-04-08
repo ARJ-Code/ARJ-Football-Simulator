@@ -17,7 +17,38 @@ class FootballSimulation:
 
         for _ in range(actions):
             self.instance_time()
-            yield str(self.game.field)
+
+            field_str = str(self.game.field)
+            statistics = self.game_statistics()
+
+            yield field_str+'\n'+statistics
+
+    def game_statistics(self) -> str:
+        nh = self.home.name
+        na = self.away.name
+        gh = self.game.home.statistics.goals
+        ga = self.game.away.statistics.goals
+        yh = self.game.home.statistics.yellow_cards
+        ya = self.game.away.statistics.yellow_cards
+        rh = self.game.home.statistics.red_cards
+        ra = self.game.away.statistics.red_cards
+
+        def get_spaces(n):
+            return ' '*(n)
+
+        def get_num(n):
+            if n < 10:
+                return ' '+str(n)
+            return str(n)
+
+        len_s = len(nh)+len(na)
+
+        return f"""
+{nh}{get_spaces(52-len_s)}{na}
+⚽ {get_num(gh)}{get_spaces(42)}{get_num(ga)} ⚽
+🟨 {get_num(yh)}{get_spaces(42)}{get_num(ya)} 🟨
+🟥 {get_num(rh)}{get_spaces(42)}{get_num(ra)} 🟥
+                """
 
     def instance_time(self):
         player_with_ball = -1
@@ -30,14 +61,23 @@ class FootballSimulation:
                     team = n.team
 
         if team == HOME:
-            self.dispatch.dispatch(self.home.players[player_with_ball].play(self.game))
-        if n.team == AWAY:
-            self.dispatch.dispatch(self.away.players[player_with_ball].play(self.game))
+            self.dispatch.dispatch(
+                self.home.players[player_with_ball].play(self.game))
+        if team == AWAY:
+            self.dispatch.dispatch(
+                self.away.players[player_with_ball].play(self.game))
+
+        mask = set()
 
         for l in self.game.field.grid:
             for n in l:
+                if (n.player, n.team) in mask:
+                    continue
                 if not n.ball:
+                    mask.add((n.player, n.team))
                     if n.team == HOME:
-                        self.dispatch.dispatch(self.home.players[n.player].play(self.game))
+                        self.dispatch.dispatch(
+                            self.home.players[n.player].play(self.game))
                     if n.team == AWAY:
-                        self.dispatch.dispatch(self.away.players[n.player].play(self.game))
+                        self.dispatch.dispatch(
+                            self.away.players[n.player].play(self.game))
