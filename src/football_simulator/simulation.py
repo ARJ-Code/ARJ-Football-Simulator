@@ -1,3 +1,4 @@
+from football_agent.actions import Dispatch
 from football_tools.game import Game
 from football_tools.data import TeamData
 from football_agent.team import HOME, AWAY, TeamAgent
@@ -9,6 +10,7 @@ class FootballSimulation:
         self.home: TeamAgent = home[0]
         self.away: TeamAgent = away[0]
         self.game: Game = Game(home[1], away[1])
+        self.dispatch = Dispatch()
 
     def simulate(self, actions: int = 180) -> Generator[str, None, None]:
         yield str(self.game.field)
@@ -28,14 +30,14 @@ class FootballSimulation:
                     team = n.team
 
         if team == HOME:
-            self.home.players[player_with_ball].play(self.game)
+            self.dispatch.dispatch(self.home.players[player_with_ball].play(self.game))
         if n.team == AWAY:
-            self.away.players[player_with_ball].play(self.game)
+            self.dispatch.dispatch(self.away.players[player_with_ball].play(self.game))
 
         for l in self.game.field.grid:
             for n in l:
                 if not n.ball:
                     if n.team == HOME:
-                        self.home.players[n.player].play(self.game)
+                        self.dispatch.dispatch(self.home.players[n.player].play(self.game))
                     if n.team == AWAY:
-                        self.away.players[n.player].play(self.game)
+                        self.dispatch.dispatch(self.away.players[n.player].play(self.game))

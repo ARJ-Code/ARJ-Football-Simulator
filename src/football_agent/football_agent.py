@@ -20,7 +20,7 @@ class FootballAgent(ABC):
 class Player(FootballAgent):
     def __init__(self,  vision: int, dorsal: int, team: str, strategy: Strategy) -> None:
         super().__init__(strategy)
-        self.vision: int = vision % 10
+        self.vision: int = vision / 10
         self.dorsal = dorsal
         self.team = team
 

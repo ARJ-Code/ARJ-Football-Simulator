@@ -14,14 +14,14 @@ class Action(ABC):
         self.src: Tuple[int, int] = src
         self.dest: Tuple[int, int] = dest
         self.player: int = player
-        self.team: str = ''
+        self.team: str = team
         self.game: Game = game
 
     def get_player_data(self) -> PlayerData:
         if self.team == HOME:
             return self.game.home.data[self.player]
         else:
-            return self.game.home.data[self.player]
+            return self.game.away.data[self.player]
 
     def get_statistics(self) -> StatisticsTeam:
         if self.team == HOME:
@@ -102,11 +102,11 @@ class Dribble(MoveWithBall):
 
     def execute(self):
         self.get_player_data().power_stamina -= 1
-        return super().execute(self.game)
+        return super().execute()
 
     def reset(self):
         self.get_player_data().power_stamina += 1
-        return super().execute(self.game)
+        return super().execute()
 
 
 class StealBall(Action):
@@ -122,7 +122,7 @@ class StealBall(Action):
 
 class StealBallTrigger(Action):
     def __init__(self, action: StealBall) -> None:
-        super().__init__(action.src, action.dest, action.player, action.game)
+        super().__init__(action.src, action.dest, action.player, action.team, action.game)
 
     def execute(self):
         self.game.field.move_ball(self.src, self.dest)
@@ -236,19 +236,26 @@ class AggressionTrigger(Action):
             player_statistics.red_cards -= 1
 
 
-class ReorganizeLineUp(Action):
-    def __init__(self, game: Game, line_up: List[Tuple[int, int, int]], team: str) -> None:
+class ReorganizeField(Action):
+    def __init__(self, game: Game, team: str, has_ball: bool) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.team: str = team
-        self.line_up: List[Tuple[int, int, int]] = line_up
-        self.memory: List[Tuple[int, int, int]] = []
+        self.line_up: List[Tuple[int, int, int]
+                           ] = game.home.line_up if team == HOME else game.away.line_up
+        self.memory: List[Tuple[int, int, int, str]] = []
+        self.memory_ball: Tuple[int, int] = (0, 0)
+        self.has_ball: bool = has_ball
 
     def execute(self):
         for l in self.game.field.grid:
             for n in l:
                 if self.team != n.team:
                     continue
-                self.memory.append((n.player, n.row, n.col))
+                if n.ball:
+                    n.ball = False
+                    self.memory_ball = (r, c)
+
+                self.memory.append((n.player, n.row, n.col, n.team))
                 n.player = -1
                 n.team = ''
 
@@ -256,10 +263,23 @@ class ReorganizeLineUp(Action):
             self.game.field.grid[r][c].player = d
             self.game.field.grid[r][c].team = self.team
 
+        if self.has_ball:
+            r, c = -1, -1
+            if self.team == HOME:
+                r, c = self.game.field.goal_h[1]
+            else:
+                r, c = self.game.field.goal_a[1]
+
+            self.game.field.grid[r][c].ball = True
+
     def reset(self):
         for _, r, c in self.line_up:
+            self.game.field.grid[r][c].ball = False
             self.game.field.grid[r][c].player = -1
             self.game.field.grid[r][c].team = ''
+
+        r, c = self.memory_ball
+        self.game.field.grid[r][c].ball = True
 
         for d, r, c in self.memory:
             self.game.field.grid[r][c].player = d
@@ -300,8 +320,15 @@ class Dispatch:
 
         if self.duel(props_h, props_a) == team:
             action = StealBallTrigger(action)
+            action_h = ReorganizeField(action.game, HOME, team != HOME)
+            action_a = ReorganizeField(action.game, AWAY, team != AWAY)
+
             self.stack.append(action)
+            self.stack.append(action_h)
+            self.stack.append(action_a)
             action.execute()
+            action_h.execute()
+            action_a.execute()
 
     def dribbling_trigger(self, action: StealBall):
         game = action.game
@@ -358,6 +385,7 @@ class Dispatch:
         if team == AWAY:
             props_a, props_h = props_h, props_a
 
+        return
         if self.duel(props_h, props_a) == team:
             action = GoalTrigger(action.game, team)
             self.stack.append(action)

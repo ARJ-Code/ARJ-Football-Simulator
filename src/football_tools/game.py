@@ -17,8 +17,8 @@ class GridField:
 
     def __str__(self) -> str:
         if self.player == - 1:
-            return ' ** '
-        return f'{f"0"  if self.player < 10 else ""}{self.player}-{self.team}'
+            return '** '
+        return f'\033{"[34m"if self.team==HOME else"[31m"}{f"0"  if self.player < 10 else ""}{self.player}\033[0m '
 
     def __eq__(self, __value: object) -> bool:
         return self.row == __value.row and self.col == __value.col
@@ -29,7 +29,7 @@ class Field:
         self.rows = rows
         self.columns = columns
         self.grid: List[List[GridField]] = [
-            [GridField(r, c) for r in range(columns)] for c in range(rows)]
+            [GridField(r, c) for c in range(columns)] for r in range(rows)]
         self.goal_h = [(0, columns // 2-1), (0, columns // 2),
                        (0, columns // 2 + 1)]
         self.goal_a = [(rows - 1, columns // 2 - 1),
@@ -60,10 +60,13 @@ class Field:
         if self.grid[x][y].player == -1:
             raise Exception("The player is not in teh source position")
         else:
+            team = self.grid[x][y].team
             player = self.grid[x][y].player
             self.grid[x][y].player = -1
+            self.grid[x][y].team = ''
             x, y = dest
             self.grid[x][y].player = player
+            self.grid[x][y].team = team
 
     @staticmethod
     def distance(src: Tuple[int, int], dest: Tuple[int, int]):
@@ -76,7 +79,7 @@ class Field:
         return min(Field.distance(d, src) for d in self.goal_h)
 
     def distance_goal_b(self, src: Tuple[int, int]):
-        return min(Field.distance(d, src) for d in self.goal_b)
+        return min(Field.distance(d, src) for d in self.goal_a)
 
     def find_player(self, dorsal: int, team: str) -> GridField:
         for row in self.grid:
