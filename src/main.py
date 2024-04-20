@@ -39,9 +39,9 @@ def clear_console():
 
 a = time.time()
 for s in sim.simulate():
-    pass
-    # time.sleep(0.5)
-    # clear_console()
-    # print(s)
+    # pass
+    time.sleep(0.5)
+    clear_console()
+    print(s)
     
 print (abs(a-time.time()))
