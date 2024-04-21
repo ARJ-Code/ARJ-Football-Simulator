@@ -4,7 +4,7 @@ class PlayerData():
     def __init__(self, df: DataFrame):
         self.short_name: str = df['short_name']
         self.club_name: str = df['club_name']
-        self.player_positions: str = df['player_positions']
+        self.player_positions: str = df['player_positions'].split(', ')
         self.overall: int = df['overall']
         self.pace: int = df['pace']
         self.shooting: int = df['shooting']
@@ -25,7 +25,7 @@ class PlayerData():
 
         self.o_short_name: str = df['short_name']
         self.o_club_name: str = df['club_name']
-        self.o_player_positions: str = df['player_positions']
+        self.o_player_positions: str = df['player_positions'].split(', ')
         self.o_overall: int = df['overall']
         self.o_pace: int = df['pace']
         self.o_shooting: int = df['shooting']

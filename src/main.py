@@ -11,6 +11,10 @@ import time
 
 df = pd.read_csv('data/players_22.csv')
 
+print(df['player_positions'][0])
+for i in df['player_positions'][0]:
+    print(i)
+
 home_n = 'FC Barcelona'
 away_n = 'Real Madrid CF'
 
