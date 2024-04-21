@@ -91,6 +91,8 @@ class Player(FootballAgent):
             actions.append(Shoot(src, self.dorsal, self.team, game))
 
         return actions
+    
+    # def filter_actions(self, )
 
 
 class Manager(FootballAgent):
