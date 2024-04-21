@@ -3,19 +3,6 @@ from typing import Dict
 from .player_data import PlayerData
 
 
-class LineUp(ABC):
-    def __init__(self) -> None:
-        self.line_up: Dict[str, LineUpGrid] = {}
-
-    def conf_players(self, players: Dict[str, PlayerData]) -> None:
-        for k, v in players.items():
-            self.line_up[k].conf_player(v)
-
-    def change_line_up(self, line_up: 'LineUp', players: Dict[str, PlayerData]) -> None:
-        self.line_up = line_up.line_up
-        self.conf_players(players)
-
-
 class LineUpGrid(ABC):
     def __init__(self, row: int, col: int) -> None:
         self.row: int = row
@@ -29,6 +16,26 @@ class LineUpGrid(ABC):
     @abstractmethod
     def _set_statistics(self, player_data: PlayerData) -> None:
         pass
+
+
+class LineUp(ABC):
+    def __init__(self) -> None:
+        self.line_up: Dict[str, LineUpGrid] = {}
+
+    def conf_players(self, players: Dict[str, PlayerData]) -> None:
+        for k, v in players.items():
+            self.line_up[k].conf_player(v)
+
+    def get_player_position(self, player: int) -> LineUpGrid | None:
+        for k, v in self.line_up.items():
+            if v.player == player:
+                return v
+
+        return None
+
+    def change_line_up(self, line_up: 'LineUp', players: Dict[str, PlayerData]) -> None:
+        self.line_up = line_up.line_up
+        self.conf_players(players)
 
 
 class ProveLineUp(LineUp):

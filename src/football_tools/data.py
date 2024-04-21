@@ -22,6 +22,7 @@ class StatisticsPLayer:
 
 class StatisticsTeam:
     def __init__(self, team: str):
+        self.changes:int = 0
         self.team_name: str = team
         self.goals: int = 0
         self.possession_instances: int = 0

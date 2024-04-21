@@ -278,6 +278,45 @@ class ReorganizeField(Action):
             self.game.field.grid[r][c].team = self.team
 
 
+class ChangeLineUp(Action):
+    def __init__(self,  team: int, game: Game, line_up: LineUp) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, game)
+        self.line_up: LineUp = line_up
+        self.memory: LineUp = game.home.line_up if team == HOME else game.away.line_up
+
+    def execute(self):
+        if self.team == HOME:
+            self.game.home.line_up = self.line_up
+        else:
+            self.game.away.line_up = self.line_up
+
+    def reset(self):
+        if self.team == HOME:
+            self.game.home.line_up = self.memory
+        else:
+            self.game.away.line_up = self.memory
+
+
+class ChangePlayer(Action):
+    def __init__(self, player: int, new_player: int, team: int, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), player, team, game)
+        self.new_player: int = new_player
+
+    def execute(self):
+        line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
+        pos = line_up.get_player_position(self.player)
+
+        pos.conf_player(self.game.home.data[self.new_player] if self.team ==
+                        HOME else self.game.away.data[self.new_player])
+
+    def reset(self):
+        line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
+        pos = line_up.get_player_position(self.new_player)
+
+        pos.conf_player(self.game.home.data[self.player] if self.team ==
+                        HOME else self.game.away.data[self.player])
+
+
 class MiddleTime(Action):
     def __init__(self, team: str, game: Game) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
