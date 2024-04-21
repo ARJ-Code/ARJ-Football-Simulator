@@ -2,6 +2,7 @@ from typing import List, Tuple
 import math
 from numpy import double
 from .data import HOME, AWAY, TeamData
+from .line_up import LineUp
 
 
 class GridField:
@@ -35,16 +36,18 @@ class Field:
         self.goal_h = [(rows - 1, columns // 2 - 1),
                        (rows - 1, columns // 2), (rows - 1, columns // 2 + 1)]
 
-    def conf_line_ups(self, line_up_h: List[Tuple[int, int, int]], line_up_a: List[Tuple[int, int, int]]):
-        for d, r, c in line_up_h:
+    def conf_line_ups(self, line_up_h: LineUp, line_up_a: LineUp):
+        for i in line_up_h.line_up.values():
+            r, c, d = i.row, i.col, i.player
             self.grid[r][c].player = d
             self.grid[r][c].team = HOME
-        for d, r, c in line_up_a:
+        for i in line_up_a.line_up.values():
+            r, c, d = i.row, i.col, i.player
             self.grid[r][c].player = d
             self.grid[r][c].team = AWAY
 
-        _, r, c = line_up_a[-1]
-        self.grid[r][c].ball = True
+        p = list(line_up_a.line_up.values())[-1]
+        self.grid[p.row][p.col].ball = True
 
     def move_ball(self, src: Tuple[int, int], dest: Tuple[int, int]):
         x, y = src

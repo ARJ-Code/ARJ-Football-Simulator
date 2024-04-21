@@ -3,6 +3,7 @@ from football_tools.game import Game
 from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
 from typing import List, Tuple, Dict
 from random import random, randint
+from football_tools.line_up import LineUp
 
 AWAY = 'A'
 HOME = 'H'
@@ -232,8 +233,7 @@ class ReorganizeField(Action):
     def __init__(self, game: Game, team: str, has_ball: bool) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.team: str = team
-        self.line_up: List[Tuple[int, int, int]
-                           ] = game.home.line_up if team == HOME else game.away.line_up
+        self.line_up: LineUp = game.home.line_up if team == HOME else game.away.line_up
         self.memory: List[Tuple[int, int, int, str]] = []
         self.memory_ball: Tuple[int, int] = (0, 0)
         self.has_ball: bool = has_ball
@@ -251,7 +251,8 @@ class ReorganizeField(Action):
                 n.player = -1
                 n.team = ''
 
-        for d, r, c in self.line_up:
+        for i in self.line_up.line_up.values():
+            r, c, d = i.row, i.col, i.player
             self.game.field.grid[r][c].player = d
             self.game.field.grid[r][c].team = self.team
 
@@ -288,7 +289,7 @@ class MiddleTime(Action):
         for p in data.keys():
             self.memory[p] = data[p].power_stamina
             data[p].power_stamina = min(
-                data[p].power_stamina*2, data[p].o_power_stamina)
+                data[p].power_stamina+data[p].o_power_stamina/2, data[p].o_power_stamina)
 
     def reset(self):
         data = self.game.home.data if self.team == HOME else self.game.away.data

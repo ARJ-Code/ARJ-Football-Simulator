@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from football_tools.line_up import ProveLineUp, ProveLineUpGrid
 from football_agent.football_agent import Player
 from football_agent.strategies import RandomStrategy
 from football_agent.team import TeamAgent
@@ -16,10 +17,13 @@ away_n = 'Real Madrid CF'
 home = get_data(home_n)
 away = get_data(away_n)
 
-home_line_up = [(10, 6, 8), (9, 6, 5), (7, 6, 2),
-                (21, 11, 8), (5, 11, 5), (14, 11, 2), (20, 15, 8), (4, 15, 6), (3, 15, 4), (18, 15, 2), (1, 18, 5)]
-away_line_up = [(21, 13, 2), (9, 13, 5), (20, 13, 8), (10, 8, 8), (14, 8, 5),
-                (8, 8, 2), (2, 4, 2), (3, 4, 4), (4, 4, 6), (23, 4, 8), (1, 1, 5)]
+home_line_up = ProveLineUp()
+away_line_up = ProveLineUp()
+
+home_line_up.line_up = {str(i): ProveLineUpGrid(x, y, z) for i, (x, y, z) in enumerate([(10, 6, 8), (9, 6, 5), (7, 6, 2),
+                                                                                        (21, 11, 8), (5, 11, 5), (14, 11, 2), (20, 15, 8), (4, 15, 6), (3, 15, 4), (18, 15, 2), (1, 18, 5)])}
+away_line_up.line_up = {str(i): ProveLineUpGrid(x, y, z) for i, (x, y, z) in enumerate([(21, 13, 2), (9, 13, 5), (20, 13, 8), (10, 8, 8), (14, 8, 5),
+                                                                                       (8, 8, 2), (2, 4, 2), (3, 4, 4), (4, 4, 6), (23, 4, 8), (1, 1, 5)])}
 
 home_d = TeamData(home_n, home_line_up, home)
 away_d = TeamData(away_n, away_line_up, away)
