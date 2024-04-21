@@ -121,8 +121,16 @@ class Field:
 
 
 class Game:
-    def __init__(self, home: TeamData, away: TeamData):
+    def __init__(self, home: TeamData, away: TeamData, cant_instances: int):
+        self.instance = 0
+        self.cant_instances: int = cant_instances
         self.field: Field = Field()
         self.home: TeamData = home
         self.away: TeamData = away
         self.field.conf_line_ups(home.line_up, away.line_up)
+
+    def is_middle(self):
+        return self.instance == self.cant_instances/2
+
+    def is_finish(self):
+        return self.instance == self.cant_instances

@@ -34,6 +34,12 @@ class Player(FootballAgent):
 
         return action
 
+    def get_data(self, game: Game) -> PlayerData:
+        if self.team == HOME:
+            return game.home.data[self.dorsal]
+        else:
+            return game.away.data[self.dorsal]
+
     def get_perceptions(self, game: Game) -> Tuple[List[GridField], GridField]:
         p_grid: GridField = game.field.find_player(self.dorsal, self.team)
         visible_grids: List[GridField] = game.field.neighbor_grids(
@@ -64,6 +70,9 @@ class Player(FootballAgent):
 
         actions.append(Nothing())
 
+        if self.get_data(game).power_stamina <= 0:
+            return actions
+
         if not p_grid.ball:
             src = (p_grid.row, p_grid.col)
             for grid in self.enemy_contiguous_grids(visible_grids, p_grid):
@@ -73,13 +82,15 @@ class Player(FootballAgent):
                         StealBall(src, dest, self.dorsal, self.team, game))
                     break
             for grid in self.empty_contiguous_grids(visible_grids, p_grid):
-                if src == (1,5) or src == (18,5): break
+                if src == (1, 5) or src == (18, 5):
+                    break
                 dest = (grid.row, grid.col)
                 actions.append(Move(src, dest, self.dorsal, self.team, game))
         else:
             src = (p_grid.row, p_grid.col)
             for grid in self.empty_contiguous_grids(visible_grids, p_grid):
-                if src == (1,5) or src == (18,5): break
+                if src == (1, 5) or src == (18, 5):
+                    break
                 dest = (grid.row, grid.col)
                 actions.append(MoveWithBall(
                     src, dest, self.dorsal, self.team, game))

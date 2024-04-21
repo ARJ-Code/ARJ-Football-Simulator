@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from football_agent.football_agent import Player
 from football_agent.strategies import RandomStrategy
@@ -8,6 +9,7 @@ from football_simulator.simulation import FootballSimulation
 import time
 
 df = pd.read_csv('data/players_22.csv')
+
 home_n = 'FC Barcelona'
 away_n = 'Real Madrid CF'
 
@@ -29,7 +31,6 @@ away_a = TeamAgent(
 
 sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 
-import os
 
 def clear_console():
     if os.name == "posix":
@@ -37,11 +38,12 @@ def clear_console():
     elif os.name in ["ce", "nt", "dos"]:
         os.system("cls")
 
+
 a = time.time()
 for s in sim.simulate():
     # pass
-    time.sleep(0.5)
+    time.sleep(0.1)
     clear_console()
     print(s)
-    
-print (abs(a-time.time()))
+
+print(abs(a-time.time()))
