@@ -2,6 +2,10 @@ from abc import ABC
 from typing import Dict
 from .player_data import PlayerData
 
+OFFENSIVE = 'OFFENSIVE'
+DEFENSIVE = 'DEFENSIVE'
+NORMAL = 'NORMAL'
+
 
 class LineUpGrid:
     def __init__(self, row: int, col: int, position: str) -> None:
@@ -9,6 +13,7 @@ class LineUpGrid:
         self.col: int = col
         self.player: int = -1
         self.position: str = position
+        self.conf: str = NORMAL
 
     def conf_player(self, player: PlayerData):
         in_position = False
@@ -42,15 +47,11 @@ class LineUp(ABC):
             self.line_up[k].conf_player(k, v)
 
     def get_player_position(self, player: int) -> LineUpGrid | None:
-        for k, v in self.line_up.items():
+        for _, v in self.line_up.items():
             if v.player == player:
                 return v
 
         return None
-
-    def change_line_up(self, line_up: 'LineUp', players: Dict[str, PlayerData]) -> None:
-        self.line_up = line_up.line_up
-        self.conf_players(players)
 
 
 class Home433(LineUp):
