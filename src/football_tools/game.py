@@ -140,7 +140,7 @@ class Game:
         return self.instance == 0
 
     def is_middle(self):
-        return self.instance == self.cant_instances/2
+        return self.instance == self.cant_instances/2+1
 
     def is_finish(self):
-        return self.instance == self.cant_instances
+        return self.instance == self.cant_instances+1

@@ -19,7 +19,10 @@ class FootballSimulation:
 
         field_str = str(self.game.field)
 
-        yield field_str+'\n'
+        statistics = self.game_statistics(
+            self.game.instance-1, self.game.cant_instances)
+
+        yield field_str+'\n'+statistics
 
         while not self.game.is_finish():
             simulator.simulate_instance()
@@ -79,8 +82,10 @@ class Simulator:
         self.dispatch = Dispatch()
 
     def start_instance(self):
+        self.game.instance = 0
         self.game.conf_line_ups(
             self.home.manager.get_line_up(), self.away.manager.get_line_up())
+        self.game.instance = 1
 
     def simulate_instance(self, current_player: Tuple[int, str] = (-1, '')):
         if self.game.is_middle():
