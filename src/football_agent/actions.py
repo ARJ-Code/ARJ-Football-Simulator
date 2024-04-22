@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from football_tools.game import Game
 from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from random import random, randint
+from football_tools.line_up import LineUp
 
 AWAY = 'A'
 HOME = 'H'
@@ -146,8 +147,6 @@ class Shoot(Action):
 
         self.ok = random() <= q
 
-        
-
     def reset(self):
         self.get_player_data().power_stamina += 2
 
@@ -181,7 +180,6 @@ class AggressionTrigger(Action):
     def __init__(self, action: StealBall, level: int) -> None:
         super().__init__(action.src, action.dest, action.player, action.team, action.game)
         self.level: int = level
-        self.break_play: bool = False
         x, y = self.src
         dorsal = self.game.field[x][y].player
 
@@ -207,7 +205,6 @@ class AggressionTrigger(Action):
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
             self.game.field[x][y].player = -1
             self.game.field[x][y].team = ''
-            self.break_play = True
 
     def reset(self):
         x, y = self.src
@@ -236,8 +233,7 @@ class ReorganizeField(Action):
     def __init__(self, game: Game, team: str, has_ball: bool) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.team: str = team
-        self.line_up: List[Tuple[int, int, int]
-                           ] = game.home.line_up if team == HOME else game.away.line_up
+        self.line_up: LineUp = game.home.line_up if team == HOME else game.away.line_up
         self.memory: List[Tuple[int, int, int, str]] = []
         self.memory_ball: Tuple[int, int] = (0, 0)
         self.has_ball: bool = has_ball
@@ -255,16 +251,17 @@ class ReorganizeField(Action):
                 n.player = -1
                 n.team = ''
 
-        for d, r, c in self.line_up:
+        for i in self.line_up.line_up.values():
+            r, c, d = i.row, i.col, i.player
             self.game.field.grid[r][c].player = d
             self.game.field.grid[r][c].team = self.team
 
         if self.has_ball:
             r, c = -1, -1
             if self.team == HOME:
-                r, c = 18,5
+                r, c = 18, 5
             else:
-                r, c = 1,5
+                r, c = 1, 5
             self.game.field.grid[r][c].ball = True
 
     def reset(self):
@@ -281,6 +278,65 @@ class ReorganizeField(Action):
             self.game.field.grid[r][c].team = self.team
 
 
+class ChangeLineUp(Action):
+    def __init__(self,  team: int, game: Game, line_up: LineUp) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, game)
+        self.line_up: LineUp = line_up
+        self.memory: LineUp = game.home.line_up if team == HOME else game.away.line_up
+
+    def execute(self):
+        if self.team == HOME:
+            self.game.home.line_up = self.line_up
+        else:
+            self.game.away.line_up = self.line_up
+
+    def reset(self):
+        if self.team == HOME:
+            self.game.home.line_up = self.memory
+        else:
+            self.game.away.line_up = self.memory
+
+
+class ChangePlayer(Action):
+    def __init__(self, player: int, new_player: int, team: int, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), player, team, game)
+        self.new_player: int = new_player
+
+    def execute(self):
+        line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
+        pos = line_up.get_player_position(self.player)
+
+        pos.conf_player(self.game.home.data[self.new_player] if self.team ==
+                        HOME else self.game.away.data[self.new_player])
+
+    def reset(self):
+        line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
+        pos = line_up.get_player_position(self.new_player)
+
+        pos.conf_player(self.game.home.data[self.player] if self.team ==
+                        HOME else self.game.away.data[self.player])
+
+
+class MiddleTime(Action):
+    def __init__(self, team: str, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, game)
+        self.memory: Dict[int, int] = {}
+
+    def execute(self):
+        data = self.game.home.data if self.team == HOME else self.game.away.data
+
+        for p in data.keys():
+            self.memory[p] = data[p].power_stamina
+            data[p].power_stamina = min(
+                data[p].power_stamina+data[p].o_power_stamina/2, data[p].o_power_stamina)
+
+    def reset(self):
+        data = self.game.home.data if self.team == HOME else self.game.away.data
+
+        for p in data.keys():
+            data[p].power_stamina = self.memory[p]
+
+
 class Dispatch:
     def __init__(self) -> None:
         self.stack: List[Action] = []
@@ -294,14 +350,14 @@ class Dispatch:
                 self.dribbling_trigger(action)
             else:
                 self.intercept_trigger(action)
-        if isinstance(action,Shoot):
+        if isinstance(action, Shoot):
             if action.ok:
                 self.shoot_trigger(action)
 
             action_h = ReorganizeField(action.game, HOME, action.team != HOME)
-            action_a = ReorganizeField(action.game, AWAY, action.team != AWAY)  
+            action_a = ReorganizeField(action.game, AWAY, action.team != AWAY)
             self.stack.append(action_h)
-            self.stack.append(action_a)  
+            self.stack.append(action_a)
             action_h.execute()
             action_a.execute()
 
@@ -317,24 +373,21 @@ class Dispatch:
 
         if action.team == HOME:
             props_h = [game.home.data[player_src].defending,
-                    game.home.data[player_src].mentality_interceptions]
+                       game.home.data[player_src].mentality_interceptions]
             props_a = [game.away.data[player_dest].movement_reactions,
-                    game.away.data[player_dest].skill_ball_control]
+                       game.away.data[player_dest].skill_ball_control]
         else:
             props_h = [game.home.data[player_dest].defending,
-                    game.home.data[player_dest].mentality_interceptions]
+                       game.home.data[player_dest].mentality_interceptions]
             props_a = [game.away.data[player_src].movement_reactions,
-                    game.away.data[player_src].skill_ball_control]
-            
+                       game.away.data[player_src].skill_ball_control]
 
         if self.duel(props_h, props_a) == team:
             action = StealBallTrigger(action)
-            
 
             self.stack.append(action)
-            
+
             action.execute()
-            
 
     def dribbling_trigger(self, action: StealBall):
         game = action.game
@@ -365,10 +418,12 @@ class Dispatch:
                 action = AggressionTrigger(action, 0, team)
                 self.stack.append(action)
                 action.execute()
+                self.break_play = True
             if rnd >= 95 and rnd < 100:
                 action = AggressionTrigger(action, 1, team)
                 self.stack.append(action)
                 action.execute()
+                self.break_play = True
             if rnd == 100:
                 action = AggressionTrigger(action, 2, team)
                 self.stack.append(action)
@@ -380,7 +435,7 @@ class Dispatch:
         player = action.game.field.grid[x][y].player
         team = action.game.field.grid[x][y].team
 
-        x, y = (1,5) if team == AWAY else (18,5)
+        x, y = (1, 5) if team == AWAY else (18, 5)
         gk = action.game.field.grid[x][y].player
 
         if team == AWAY:
@@ -393,16 +448,12 @@ class Dispatch:
             props_h = [game.home.data[player].shooting]
 
             props_a = [game.away.data[gk].goal_keep_reflexes,
-                       game.away.data[gk].goal_keep_diving]    
+                       game.away.data[gk].goal_keep_diving]
 
         if self.duel(props_h, props_a) == team:
             action = GoalTrigger(action, team)
             self.stack.append(action)
             action.execute()
-
-        
-
-
 
     def duel(self, props_h: List[int], props_a: List[int]) -> str:
         mh = sum(props_h)/len(props_h)

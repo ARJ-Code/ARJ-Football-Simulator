@@ -1,28 +1,30 @@
-from football_agent.actions import Dispatch
+from football_agent.actions import Dispatch, MiddleTime
 from football_tools.game import Game
 from football_tools.data import TeamData
 from football_agent.team import HOME, AWAY, TeamAgent
 from typing import Generator, Tuple
+import math
 
 
 class FootballSimulation:
     def __init__(self, home: Tuple[TeamAgent, TeamData], away: Tuple[TeamAgent, TeamData]) -> None:
         self.home: TeamAgent = home[0]
         self.away: TeamAgent = away[0]
-        self.game: Game = Game(home[1], away[1])
+        self.game: Game = Game(home[1], away[1], 180)
 
-    def simulate(self, actions: int = 180) -> Generator[str, None, None]:
+    def simulate(self) -> Generator[str, None, None]:
         simulator = Simulator(self.home, self.away, self.game)
 
-        for i in range(actions):
+        while not self.game.is_finish():
             simulator.simulate_instance()
 
             field_str = str(self.game.field)
-            statistics = self.game_statistics(i)
+            statistics = self.game_statistics(
+                self.game.instance-1, self.game.cant_instances)
 
             yield field_str+'\n'+statistics
 
-    def game_statistics(self, instance: int) -> str:
+    def game_statistics(self, instance: int, actions: int) -> str:
         nh = f'\033[34m{self.home.name}\033[0m'
         na = f'\033[31m{self.away.name}\033[0m'
         gh = self.game.home.statistics.goals
@@ -33,6 +35,8 @@ class FootballSimulation:
         ra = self.game.away.statistics.red_cards
         ph = self.game.home.statistics.possession_instances*100//(instance+1)
         pa = self.game.away.statistics.possession_instances*100//(instance+1)
+        tm = int(math.modf(instance/actions*90)[1])
+        ts = int(math.modf(instance/actions*90)[0]*60)
 
         def get_spaces(n):
             return ' '*(n)
@@ -44,15 +48,20 @@ class FootballSimulation:
                 return ' '+str(n)
             return str(n)
 
+        def get_num1(n):
+            if n < 10:
+                return '0'+str(n)
+            return str(n)
+
         len_s = len(nh)+len(na)-18
 
         return f"""
+{get_spaces(24)}{get_num1(tm)}:{get_num1(ts)}
 {nh}{get_spaces(52-len_s)}{na}
 ⚽ {get_num(gh)}{get_spaces(40)}{get_num(ga)} ⚽
 ⌛ {get_num(ph)}{get_spaces(40)}{get_num(pa)} ⌛
 🟨 {get_num(yh)}{get_spaces(40)}{get_num(ya)} 🟨
 🟥 {get_num(rh)}{get_spaces(40)}{get_num(ra)} 🟥
-
                 """
 
 
@@ -64,6 +73,10 @@ class Simulator:
         self.dispatch = Dispatch()
 
     def simulate_instance(self, current_player: Tuple[int, str] = (-1, '')):
+        if self.game.is_middle():
+            self.dispatch.dispatch(MiddleTime(HOME, self.game))
+            self.dispatch.dispatch(MiddleTime(AWAY, self.game))
+
         player_with_ball = -1
         team = ''
 
@@ -88,8 +101,14 @@ class Simulator:
 
         for l in self.game.field.grid:
             for n in l:
+
                 if (n.player, n.team) in mask:
                     continue
+                if n.team == HOME and self.game.home.data[n.player].power_stamina < 0:
+                    print(n.player)
+                if n.team == AWAY and self.game.away.data[n.player].power_stamina < 0:
+                    print(n.player)
+
                 if n.team == current_player[1] and n.player == current_player[0]:
                     continue
                 if not n.ball:
@@ -101,7 +120,15 @@ class Simulator:
                         self.dispatch.dispatch(
                             self.away.players[n.player].play(self.game))
 
+        self.game.instance += 1
+
     def reset_instance(self):
+        self.game.instance -= 1
+
+        if self.game.is_middle():
+            self.dispatch.reset(self.game)
+            self.dispatch.reset(self.game)
+
         team = ''
 
         for l in self.game.field.grid:
