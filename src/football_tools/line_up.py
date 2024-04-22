@@ -19,6 +19,10 @@ class LineUpGrid:
         self._set_statistics(player, player.club_position == self.position)
         self.player: int = player.dorsal
 
+    def set_statistics(self, player_data: PlayerData) -> None:
+        self._set_statistics(
+            player_data, player_data.club_position in self.position)
+
     def _set_statistics(self, player_data: PlayerData, in_position: bool) -> None:
         if not in_position:
             player_data.defending -= 5
@@ -31,6 +35,7 @@ class LineUpGrid:
             player_data.pace -= 5
             player_data.skill_ball_control -= 5
             player_data.shooting -= 5
+            player_data.overall -= 5
 
 
 class LineUp(ABC):
@@ -98,8 +103,8 @@ class Home442(LineUp):
             'RCM': LineUpGrid(11, 6, 'RCM'),
             'LCM': LineUpGrid(11, 4, 'LCM'),
             'LM': LineUpGrid(10, 2, 'LM'),
-            'ST': LineUpGrid(6, 4, 'ST'),
-            'ST': LineUpGrid(6, 6, 'ST')
+            'ST1': LineUpGrid(6, 4, 'ST1'),
+            'ST2': LineUpGrid(6, 6, 'ST2')
         }
 
 
@@ -116,8 +121,8 @@ class Away442(LineUp):
             'RCM': LineUpGrid(8, 4, 'RCM'),
             'LCM': LineUpGrid(8, 6, 'LCM'),
             'LM': LineUpGrid(9, 2, 'LM'),
-            'ST': LineUpGrid(13, 6, 'ST'),
-            'ST': LineUpGrid(13, 4, 'ST')
+            'ST1': LineUpGrid(13, 6, 'ST1'),
+            'ST2': LineUpGrid(13, 4, 'ST2')
         }
 
 
@@ -170,8 +175,8 @@ class Home532(LineUp):
             'CDM': LineUpGrid(12, 5, 'CDM'),
             'RCM': LineUpGrid(10, 7, 'RCM'),
             'LCM': LineUpGrid(10, 3, 'LCM'),
-            'ST': LineUpGrid(6, 4, 'ST'),
-            'ST': LineUpGrid(6, 6, 'ST')
+            'ST1': LineUpGrid(6, 4, 'ST1'),
+            'ST2': LineUpGrid(6, 6, 'ST2')
         }
 
 
@@ -188,8 +193,8 @@ class Away532(LineUp):
             'CDM': LineUpGrid(7, 5, 'CDM'),
             'LCM': LineUpGrid(9, 7, 'LCM'),
             'RCM': LineUpGrid(9, 3, 'RCM'),
-            'ST': LineUpGrid(13, 6, 'ST'),
-            'ST': LineUpGrid(13, 4, 'ST')
+            'ST1': LineUpGrid(13, 6, 'ST1'),
+            'ST2': LineUpGrid(13, 4, 'ST2')
         }
 
 
