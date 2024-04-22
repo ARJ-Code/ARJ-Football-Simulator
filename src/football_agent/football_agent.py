@@ -4,26 +4,22 @@ from .actions import *
 from football_tools.game import *
 from typing import List, Tuple, Generator
 
-from football_agent.strategies import Strategy
+from .strategies import Strategy
+from .manager_strategy import ManagerStrategy
 
 AWAY = 'A'
 HOME = 'H'
 
 
-class FootballAgent(ABC):
-    def __init__(self, strategy: Strategy) -> None:
-        self.strategy = strategy
-
-    def select_action(self, actions: List[Action], game: Game) -> Action:
-        return self.strategy.select_action(actions, game)
-
-
-class Player(FootballAgent):
+class Player:
     def __init__(self,  vision: int, dorsal: int, team: str, strategy: Strategy) -> None:
-        super().__init__(strategy)
+        self.strategy = strategy
         self.vision: int = vision / 10
         self.dorsal = dorsal
         self.team = team
+
+    def select_action(self, actions: List[Action], game: Game) -> Action:
+        return self.strategy.select_action(actions, game)
 
     def play(self, game: Game):
         visible_grids, p_grid = self.get_perceptions(game)
@@ -102,9 +98,15 @@ class Player(FootballAgent):
             actions.append(Shoot(src, self.dorsal, self.team, game))
 
         return actions
-    
+
     # def filter_actions(self, )
 
 
-class Manager(FootballAgent):
-    pass
+class Manager:
+    def __init__(self, strategy: ManagerStrategy, team: str, players: List[PlayerData]) -> None:
+        self.strategy: ManagerStrategy = strategy
+        self.team: str = team
+        self.players: List[Player] = players
+
+    def get_line_up(self) -> LineUp:
+        return self.strategy.get_line_up(self.players, self.team)

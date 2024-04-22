@@ -317,24 +317,28 @@ class ChangePlayer(Action):
                         HOME else self.game.away.data[self.player])
 
 
-class MiddleTime(Action):
+class MiddleTime(ReorganizeField):
     def __init__(self, team: str, game: Game) -> None:
-        super().__init__((0, 0), (0, 0), -1, team, game)
-        self.memory: Dict[int, int] = {}
+        super().__init__(game, team, team == HOME)
+        self.memory_stamina: Dict[int, int] = {}
 
     def execute(self):
         data = self.game.home.data if self.team == HOME else self.game.away.data
 
         for p in data.keys():
-            self.memory[p] = data[p].power_stamina
+            self.memory_stamina[p] = data[p].power_stamina
             data[p].power_stamina = min(
                 data[p].power_stamina+data[p].o_power_stamina/2, data[p].o_power_stamina)
 
+        super().execute()
+
     def reset(self):
+        super().reset()
+
         data = self.game.home.data if self.team == HOME else self.game.away.data
 
         for p in data.keys():
-            data[p].power_stamina = self.memory[p]
+            data[p].power_stamina = self.memory_stamina[p]
 
 
 class Dispatch:

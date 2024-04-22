@@ -44,7 +44,7 @@ class LineUp(ABC):
 
     def conf_players(self, players: Dict[str, PlayerData]) -> None:
         for k, v in players.items():
-            self.line_up[k].conf_player(k, v)
+            self.line_up[k].conf_player(v)
 
     def get_player_position(self, player: int) -> LineUpGrid | None:
         for _, v in self.line_up.items():

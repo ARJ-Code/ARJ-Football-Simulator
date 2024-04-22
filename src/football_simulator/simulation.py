@@ -15,6 +15,12 @@ class FootballSimulation:
     def simulate(self) -> Generator[str, None, None]:
         simulator = Simulator(self.home, self.away, self.game)
 
+        simulator.start_instance()
+
+        field_str = str(self.game.field)
+
+        yield field_str+'\n'
+
         while not self.game.is_finish():
             simulator.simulate_instance()
 
@@ -72,6 +78,10 @@ class Simulator:
         self.game: Game = game
         self.dispatch = Dispatch()
 
+    def start_instance(self):
+        self.game.conf_line_ups(
+            self.home.manager.get_line_up(), self.away.manager.get_line_up())
+
     def simulate_instance(self, current_player: Tuple[int, str] = (-1, '')):
         if self.game.is_middle():
             self.dispatch.dispatch(MiddleTime(HOME, self.game))
@@ -104,10 +114,6 @@ class Simulator:
 
                 if (n.player, n.team) in mask:
                     continue
-                if n.team == HOME and self.game.home.data[n.player].power_stamina < 0:
-                    print(n.player)
-                if n.team == AWAY and self.game.away.data[n.player].power_stamina < 0:
-                    print(n.player)
 
                 if n.team == current_player[1] and n.player == current_player[0]:
                     continue
