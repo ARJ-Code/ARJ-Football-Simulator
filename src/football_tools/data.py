@@ -22,7 +22,7 @@ class StatisticsPLayer:
 
 class StatisticsTeam:
     def __init__(self, team: str):
-        self.changes:int = 0
+        self.changes: int = 0
         self.team_name: str = team
         self.goals: int = 0
         self.possession_instances: int = 0
@@ -35,9 +35,9 @@ class StatisticsTeam:
 
 
 class TeamData:
-    def __init__(self, name: str, line_up: LineUp, data: List[PlayerData]) -> None:
+    def __init__(self, name: str, data: List[PlayerData]) -> None:
         self.name = name
-        self.line_up: LineUp = line_up
+        self.line_up: LineUp | None = None
         self.data: Dict[int, PlayerData] = {}
         self.statistics: StatisticsTeam = StatisticsTeam(name)
         self.players_statistics: Dict[int, StatisticsPLayer] = {}

@@ -19,7 +19,7 @@ class GridField:
     def __str__(self) -> str:
         if self.player == - 1:
             return '\033[32m**  \033[0m'
-        return f'\033{"[34m"if self.team==HOME else"[31m"}{f"0"  if self.player < 10 else ""}{self.player}\033[0m{"⚽" if self.ball else "  "}'
+        return f'\033{"[34m"if self.team==HOME else"[31m"}{f"0"  if self.player < 10 else ""}{int(self.player)}\033[0m{"⚽" if self.ball else "  "}'
 
     def __eq__(self, __value: object) -> bool:
         return self.row == __value.row and self.col == __value.col
@@ -46,7 +46,7 @@ class Field:
             self.grid[r][c].player = d
             self.grid[r][c].team = AWAY
 
-        p = list(line_up_a.line_up.values())[-1]
+        p = line_up_a.line_up['GK']
         self.grid[p.row][p.col].ball = True
 
     def move_ball(self, src: Tuple[int, int], dest: Tuple[int, int]):
@@ -130,7 +130,14 @@ class Game:
         self.field: Field = Field()
         self.home: TeamData = home
         self.away: TeamData = away
-        self.field.conf_line_ups(home.line_up, away.line_up)
+
+    def conf_line_ups(self, line_up_h: LineUp, line_up_a: LineUp):
+        self.home.line_up = line_up_h
+        self.away.line_up = line_up_a
+        self.field.conf_line_ups(line_up_h, line_up_a)
+
+    def is_start(self):
+        return self.instance == 0
 
     def is_middle(self):
         return self.instance == self.cant_instances/2
