@@ -1,5 +1,6 @@
 from typing import Dict
-from .football_agent import Player, Manager
+from .player_agent import Player
+from .manager_agent import Manager
 
 AWAY = 'A'
 HOME = 'H'

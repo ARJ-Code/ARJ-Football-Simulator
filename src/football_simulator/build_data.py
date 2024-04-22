@@ -1,8 +1,9 @@
 import pandas as pd
 from typing import List
 from football_tools.data import PlayerData
-from football_agent.football_agent import Player, Manager
-from football_agent.strategies import RandomStrategy
+from football_agent.player_agent import Player
+from football_agent.manager_agent import Manager
+from football_agent.player_strategy import RandomStrategy
 from football_agent.manager_strategy import RandomStrategy as RandomStrategyManager
 from football_agent.team import TeamAgent
 from football_tools.data import TeamData

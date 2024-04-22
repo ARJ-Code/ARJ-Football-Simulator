@@ -16,7 +16,7 @@ class LineUpGrid:
         self.conf: str = NORMAL
 
     def conf_player(self, player: PlayerData):
-        self._set_statistics(player, player.club_position in self.position)
+        self._set_statistics(player, player.club_position == self.position)
         self.player: int = player.dorsal
 
     def _set_statistics(self, player_data: PlayerData, in_position: bool) -> None:
@@ -98,8 +98,8 @@ class Home442(LineUp):
             'RCM': LineUpGrid(11, 6, 'RCM'),
             'LCM': LineUpGrid(11, 4, 'LCM'),
             'LM': LineUpGrid(10, 2, 'LM'),
-            'ST1': LineUpGrid(6, 4, 'ST1'),
-            'ST2': LineUpGrid(6, 6, 'ST2')
+            'ST': LineUpGrid(6, 4, 'ST'),
+            'ST': LineUpGrid(6, 6, 'ST')
         }
 
 
@@ -116,8 +116,8 @@ class Away442(LineUp):
             'RCM': LineUpGrid(8, 4, 'RCM'),
             'LCM': LineUpGrid(8, 6, 'LCM'),
             'LM': LineUpGrid(9, 2, 'LM'),
-            'ST1': LineUpGrid(13, 6, 'ST1'),
-            'ST2': LineUpGrid(13, 4, 'ST2')
+            'ST': LineUpGrid(13, 6, 'ST'),
+            'ST': LineUpGrid(13, 4, 'ST')
         }
 
 
@@ -170,8 +170,8 @@ class Home532(LineUp):
             'CDM': LineUpGrid(12, 5, 'CDM'),
             'RCM': LineUpGrid(10, 7, 'RCM'),
             'LCM': LineUpGrid(10, 3, 'LCM'),
-            'ST1': LineUpGrid(6, 4, 'ST1'),
-            'ST2': LineUpGrid(6, 6, 'ST2')
+            'ST': LineUpGrid(6, 4, 'ST'),
+            'ST': LineUpGrid(6, 6, 'ST')
         }
 
 
@@ -188,8 +188,8 @@ class Away532(LineUp):
             'CDM': LineUpGrid(7, 5, 'CDM'),
             'LCM': LineUpGrid(9, 7, 'LCM'),
             'RCM': LineUpGrid(9, 3, 'RCM'),
-            'ST1': LineUpGrid(13, 6, 'ST1'),
-            'ST2': LineUpGrid(13, 4, 'ST2')
+            'ST': LineUpGrid(13, 6, 'ST'),
+            'ST': LineUpGrid(13, 4, 'ST')
         }
 
 

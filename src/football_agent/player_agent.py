@@ -4,8 +4,7 @@ from .actions import *
 from football_tools.game import *
 from typing import List, Tuple, Generator
 
-from .strategies import Strategy
-from .manager_strategy import ManagerStrategy
+from .player_strategy import Strategy
 
 AWAY = 'A'
 HOME = 'H'
@@ -100,13 +99,3 @@ class Player:
         return actions
 
     # def filter_actions(self, )
-
-
-class Manager:
-    def __init__(self, strategy: ManagerStrategy, team: str, players: List[PlayerData]) -> None:
-        self.strategy: ManagerStrategy = strategy
-        self.team: str = team
-        self.players: List[Player] = players
-
-    def get_line_up(self) -> LineUp:
-        return self.strategy.get_line_up(self.players, self.team)
