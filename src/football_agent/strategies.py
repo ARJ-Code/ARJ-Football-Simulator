@@ -1,8 +1,8 @@
-from typing import List
+from typing import Dict, List
 
 from football_agent.behavior import *
 from football_agent.fuzzy_rules import fuzzy_defensive_position, fuzzy_ofensive_position
-from football_tools.data import HOME
+from football_tools.data import HOME, StatisticsTeam
 from football_tools.line_up import DEFENSE, MIDFIELD
 from .actions import Action
 from football_tools.game import Game, GridField
@@ -51,12 +51,26 @@ class MidfielderStrategy(Strategy):
         
 class GameEvaluator:
     def eval(self, game: Game, team: str):
-        return self.controlled_grids(game, team) * 0.1 + \
-            self.distance_from_ball_to_self_goal(game, team) * 0.1 + \
-            self.distance_from_ball_to_enemy_goal(game, team) * 0.1 + \
-            self.pass_oportunities(game, team) * 0.1 + \
-            self.avg_defensive_position(game, team) * 0.1 + \
-            self.avg_ofensive_position(game, team) * 0.1
+        ball_position = self.ball_position(game)
+        value = (
+            (1 if ball_position.team == team else 0) * 0.2 +
+            self.team_advantage(game, team) * 0.2 + 
+            self.controlled_grids(game, team) / 220 * 0.1
+        )
+
+        if ball_position.team == team:
+            value += (
+                self.distance_from_ball_to_enemy_goal(game, team) * 0.1 +
+                self.pass_oportunities(game, team) * 0.1 +
+                self.avg_ofensive_position(game, team) * 0.3
+            )
+        else:
+            value += (
+                self.distance_from_ball_to_self_goal(game, team) * 0.2 +
+                self.avg_defensive_position(game, team) * 0.3
+            )
+
+        return value
                 
     def controlled_grids(self, game: Game, team: str) -> int:
         controlled_grids = set()
@@ -143,3 +157,35 @@ class GameEvaluator:
                     ofensive_positioning.compute()
                     avg += ofensive_positioning.output['ofensive_position']
         return avg / 10
+    
+    def team_advantage(self, game: Game, team: str) -> float:
+        self_data = game.home if team == HOME else game.away
+        enemy_data = game.away if team == HOME else game.home
+
+        self_score = self.team_score(self_data.statistics)
+        enemy_score = self.team_score(enemy_data.statistics)
+
+        return self_score - enemy_score
+
+    def team_score(self, statistics: StatisticsTeam) -> float:
+        weights: Dict[str, float] = {
+            'goal': 1,
+            'possession': 0.2,
+            'shoots': 0.1,
+            'passes': 0.01,
+            'fouls': 0.1,
+            'yellow_cards': 0.15,
+            'red_cards': 0.5
+        }
+
+        score = (
+            statistics.goals * weights['goals'] +
+            statistics.possession_instances * weights['possession'] +
+            statistics.shots * weights['shots'] +
+            statistics.passes_completed * weights['passes'] -
+            statistics.fouls * weights['fouls'] -
+            statistics.yellow_cards * weights['yellow_cards'] -
+            statistics.red_cards * weights['red_cards']
+        )
+
+        return score
