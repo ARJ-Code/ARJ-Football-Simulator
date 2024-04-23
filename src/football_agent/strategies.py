@@ -14,7 +14,6 @@ class Strategy:
         actions.sort(key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
         return actions[-1]
 
-
 class RandomStrategy(Strategy):
     def __init__(self) -> None:
         super().__init__()
@@ -22,7 +21,7 @@ class RandomStrategy(Strategy):
 
     # def select_action(self, actions: List[Action], game: Game) -> Action:
     #     return choice(actions)
-        
+
 class DefensorStrategy(Strategy):
     def __init__(self) -> None:
         super().__init__()
@@ -30,7 +29,7 @@ class DefensorStrategy(Strategy):
                                           ReturnToPosition(importance=0.5),
                                           Ofensive(importance=0.2),
                                           Random(importance=0.2)]
-        
+
 class OfensorStrategy(Strategy):
     def __init__(self) -> None:
         super().__init__()
@@ -38,7 +37,7 @@ class OfensorStrategy(Strategy):
                                           ReturnToPosition(importance=0.5),
                                             Defensive(importance=0.2),
                                           Random(importance=0.2)]
-        
+
 class MidfielderStrategy(Strategy):
     def __init__(self) -> None:
         super().__init__()
