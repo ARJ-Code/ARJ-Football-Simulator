@@ -15,6 +15,9 @@ class GridField:
 
     def is_empty(self) -> bool:
         return self.player == -1
+    
+    def is_contiguous(self, g: 'GridField'):
+        return (abs(self.row - g.row) == 1 and abs(self.col - g.col) == 1) or (abs(self.row - g.row) + abs(self.col - g.col) == 1)
 
     def __str__(self) -> str:
         if self.player == - 1:
@@ -71,12 +74,29 @@ class Field:
             self.grid[x][y].player = player
             self.grid[x][y].team = team
 
+    def is_valid_grid(self, grid: Tuple[int, int]) -> bool:
+        x, y = grid
+        return x >= 0 and x <= 19 and y >= 0 and y <= 10
+
     @staticmethod
     def distance(src: Tuple[int, int], dest: Tuple[int, int]):
         xs, ys = src
         xd, yd = dest
 
         return math.sqrt((xs-xd)**2+(ys-yd)**2)
+    
+    @staticmethod
+    def int_distance(src: Tuple[int, int], dest: Tuple[int, int]):
+        xs, ys = src
+        xd, yd = dest
+
+        return max(abs(xs-xd), abs(ys-yd))
+    
+    def int_distance_goal_h(self, src: Tuple[int, int]):
+        return min(Field.int_distance(d, src) for d in self.goal_h)
+
+    def int_distance_goal_a(self, src: Tuple[int, int]):
+        return min(Field.int_distance(d, src) for d in self.goal_a)
 
     def distance_goal_h(self, src: Tuple[int, int]):
         return min(Field.distance(d, src) for d in self.goal_h)

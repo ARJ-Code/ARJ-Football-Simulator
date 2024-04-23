@@ -43,12 +43,9 @@ class Player:
 
         return visible_grids, p_grid
 
-    def is_contiguous(self, f: GridField, s: GridField):
-        return (abs(f.row - s.row) == 1 and abs(f.col - s.col) == 1) or (abs(f.row - s.row) + abs(f.col - s.col) == 1)
-
     def empty_contiguous_grids(self, visible_grids: List[GridField], p_grid: GridField) -> Generator[GridField, None, None]:
         for g in visible_grids:
-            if self.is_contiguous(p_grid, g) and g.is_empty():
+            if p_grid.is_contiguous(g) and g.is_empty():
                 yield g
 
     def friendly_grids(self, visible_grids: List[GridField]) -> Generator[GridField, None, None]:
@@ -58,7 +55,7 @@ class Player:
 
     def enemy_contiguous_grids(self, visible_grids: List[GridField], p_grid: GridField) -> Generator[GridField, None, None]:
         for g in visible_grids:
-            if g.team is not None and g.team != self.team and self.is_contiguous(p_grid, g):
+            if g.team is not None and g.team != self.team and p_grid.is_contiguous(g):
                 yield g
 
     def construct_actions(self, game: Game, visible_grids: List[GridField], p_grid: GridField) -> List[Action]:
