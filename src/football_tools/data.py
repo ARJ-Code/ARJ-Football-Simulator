@@ -45,3 +45,8 @@ class TeamData:
         for player in data:
             self.players_statistics[player.dorsal] = StatisticsPLayer()
             self.data[player.dorsal] = player
+
+    def reset(self):
+        self.statistics = StatisticsTeam(self.name)
+        for player in self.data.keys():
+            self.players_statistics[player] = StatisticsPLayer()
