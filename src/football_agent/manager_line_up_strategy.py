@@ -1,7 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
 from random import choice
-from .actions import Action
+from .actions import *
 from football_tools.line_up import *
 from football_tools.game import Game
 from .simulator_agent import SimulatorAgent
@@ -59,23 +59,28 @@ def possibles_line_up(players: List[PlayerData], team: str) -> List[LineUp]:
 
     return possibles
 
-def possibles_change_player(game:Game):
-    possibles=[]
 
-    
+def possibles_change_player(game: Game, team: str) -> List[Action]:
+    possibles = []
+
+    team_data = game.home if team == HOME else game.away
+
+    for k, v in team_data.line_up.line_up.items():
+        for player in team_data.on_bench:
+            for pos in team_data.data[player].player_positions:
+                if pos in k:
+                    possibles.append(ChangePlayer(
+                        v.player, player, team, game))
+
+    return possibles
 
 
-class ManagerStrategy(ABC):
+class ManagerLineUpStrategy(ABC):
     @abstractmethod
     def get_line_up(self, team: str, simulator: SimulatorAgent) -> LineUp:
         pass
 
-    @abstractmethod
-    def action(self, game: Game) -> Action:
-        pass
-
-
-class RandomStrategy(ManagerStrategy):
+class LineUpRandomStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str, simulator: SimulatorAgent) -> LineUp:
         return choice(possibles_line_up(simulator.game.home.data.values(), HOME) if team == HOME else possibles_line_up(simulator.game.away.data.values(), AWAY))
 
@@ -83,7 +88,7 @@ class RandomStrategy(ManagerStrategy):
         return super().action(game)
 
 
-class SimulateStrategy(ManagerStrategy):
+class LineUpSimulateStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str,  simulator: SimulatorAgent) -> LineUp:
         home_line_ups = possibles_line_up(
             simulator.game.home.data.values(), HOME)[:1]

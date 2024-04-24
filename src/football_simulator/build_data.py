@@ -4,7 +4,7 @@ from football_tools.data import PlayerData
 from football_agent.player_agent import Player
 from football_agent.manager_agent import Manager
 from football_agent.player_strategy import RandomStrategy
-from football_agent.manager_strategy import RandomStrategy as RandomStrategyManager, SimulateStrategy
+from football_agent.manager_line_up_strategy import RandomStrategy as RandomStrategyManager, SimulateStrategy
 from football_agent.team import TeamAgent
 from football_tools.data import TeamData
 from football_simulator.simulator import FootballSimulation
