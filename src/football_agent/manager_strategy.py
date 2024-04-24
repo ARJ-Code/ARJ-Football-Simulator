@@ -59,6 +59,11 @@ def possibles_line_up(players: List[PlayerData], team: str) -> List[LineUp]:
 
     return possibles
 
+def possibles_change_player(game:Game):
+    possibles=[]
+
+    
+
 
 class ManagerStrategy(ABC):
     @abstractmethod
@@ -81,9 +86,9 @@ class RandomStrategy(ManagerStrategy):
 class SimulateStrategy(ManagerStrategy):
     def get_line_up(self, team: str,  simulator: SimulatorAgent) -> LineUp:
         home_line_ups = possibles_line_up(
-            simulator.game.home.data.values(), HOME)
+            simulator.game.home.data.values(), HOME)[:1]
         away_line_ups = possibles_line_up(
-            simulator.game.away.data.values(), AWAY)
+            simulator.game.away.data.values(), AWAY)[:1]
 
         results = []
 

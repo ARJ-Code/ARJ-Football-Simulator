@@ -42,6 +42,10 @@ class TeamData:
         self.statistics: StatisticsTeam = StatisticsTeam(name)
         self.players_statistics: Dict[int, StatisticsPLayer] = {}
 
+        self.on_field: List[int] = set([])
+        self.on_bench: List[int] = set([])
+        self.unavailable: List[int] = set([])
+
         for player in data:
             self.players_statistics[player.dorsal] = StatisticsPLayer()
             self.data[player.dorsal] = player

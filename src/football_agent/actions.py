@@ -310,12 +310,26 @@ class ChangePlayer(Action):
         pos.conf_player(self.game.home.data[self.new_player] if self.team ==
                         HOME else self.game.away.data[self.new_player])
 
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        team_data.on_field.remove(self.player)
+        team_data.unavailable.add(self.player)
+        team_data.on_bench.remove(self.new_player)
+        team_data.on_field.add(self.new_player)
+
     def reset(self):
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.new_player)
 
         pos.conf_player(self.game.home.data[self.player] if self.team ==
                         HOME else self.game.away.data[self.player])
+
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        team_data.on_field.add(self.player)
+        team_data.unavailable.remove(self.player)
+        team_data.on_bench.add(self.new_player)
+        team_data.on_field.remove(self.new_player)
 
 
 class MiddleTime(ReorganizeField):
