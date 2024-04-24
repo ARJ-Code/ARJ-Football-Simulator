@@ -87,17 +87,40 @@ class SimulateStrategy(ManagerStrategy):
 
         results = []
 
-        for home in home_line_ups:
-            for away in away_line_ups:
+        for i, home in enumerate(home_line_ups):
+            for j, away in enumerate(away_line_ups):
                 simulator.game.conf_line_ups(home, away)
                 simulator.game.instance = 1
 
                 simulator.simulate()
+
+                results.append((i, j, simulator.game.home.statistics.goals,
+                                simulator.game.away.statistics.goals))
+
                 simulator.reset()
                 simulator.game.reset()
-                print(simulator.game.home.statistics.possession_instances)
-            
-        return choice(possibles_line_up(simulator.game.home.data.values(), HOME) if team == HOME else possibles_line_up(simulator.game.away.data.values(), AWAY))
+
+        ind = 0
+        mv = 0
+
+        results_by_sim = {}
+
+        for i, j, _, _ in results:
+            results_by_sim[i if team == HOME else j] = (0, 0)
+
+        for i, j, h, a in results:
+            r = h-a if team == HOME else a-h
+
+            c, g = results_by_sim[i if team == HOME else j]
+            results_by_sim[i if team == HOME else j] = (
+                c+(1 if r > 0 else 0), g + r)
+
+        for k, v in results_by_sim.items():
+            if v[0]*1000+v[1] > mv:
+                ind = k
+                mv = v[0]*1000+v[1]
+
+        return home_line_ups[ind] if team == HOME else away_line_ups[ind]
 
     def action(self, game: Game) -> Action:
         return super().action(game)
