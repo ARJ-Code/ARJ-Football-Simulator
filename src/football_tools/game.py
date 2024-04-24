@@ -36,6 +36,10 @@ class Field:
         self.goal_h = [(rows - 1, columns // 2 - 1),
                        (rows - 1, columns // 2), (rows - 1, columns // 2 + 1)]
 
+    def reset(self):
+        self.grid: List[List[GridField]] = [
+            [GridField(r, c) for c in range(self.columns)] for r in range(self.rows)]
+
     def conf_line_ups(self, line_up_h: LineUp, line_up_a: LineUp):
         for i in line_up_h.line_up.values():
             r, c, d = i.row, i.col, i.player
@@ -61,7 +65,7 @@ class Field:
     def move_player(self, src: Tuple[int, int], dest: Tuple[int, int]):
         x, y = src
         if self.grid[x][y].player == -1:
-            raise Exception("The player is not in teh source position")
+            raise Exception("The player is not in the source position")
         else:
             team = self.grid[x][y].team
             player = self.grid[x][y].player
@@ -130,6 +134,12 @@ class Game:
         self.field: Field = Field()
         self.home: TeamData = home
         self.away: TeamData = away
+
+    def reset(self):
+        self.instance = 0
+        self.field.reset()
+        self.home.reset()
+        self.away.reset()
 
     def conf_line_ups(self, line_up_h: LineUp, line_up_a: LineUp):
         self.home.line_up = line_up_h

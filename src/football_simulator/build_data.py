@@ -4,10 +4,10 @@ from football_tools.data import PlayerData
 from football_agent.player_agent import Player
 from football_agent.manager_agent import Manager
 from football_agent.player_strategy import RandomStrategy
-from football_agent.manager_strategy import RandomStrategy as RandomStrategyManager
+from football_agent.manager_strategy import RandomStrategy as RandomStrategyManager, SimulateStrategy
 from football_agent.team import TeamAgent
 from football_tools.data import TeamData
-from football_simulator.simulation import FootballSimulation
+from football_simulator.simulator import FootballSimulation
 
 
 df = pd.read_csv('data/players_22.csv')
@@ -26,9 +26,9 @@ def conf_game(home_n: str, away_n: str):
     away_d = TeamData(away_n, away)
 
     home_a = TeamAgent(
-        home_n, Manager(RandomStrategyManager(), 'H', home_d.data.values()), {p.dorsal: Player(50, p.dorsal, 'H', RandomStrategy()) for p in home})
+        home_n, Manager(SimulateStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', RandomStrategy()) for p in home})
     away_a = TeamAgent(
-        away_n, Manager(RandomStrategyManager(), 'A', away_d.data.values()), {p.dorsal: Player(50, p.dorsal, 'A', RandomStrategy()) for p in away})
+        away_n, Manager(SimulateStrategy(), 'A'), {p.dorsal: Player(50, p.dorsal, 'A', RandomStrategy()) for p in away})
 
     sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 

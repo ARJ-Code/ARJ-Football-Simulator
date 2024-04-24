@@ -107,7 +107,7 @@ class Dribble(MoveWithBall):
 
     def reset(self):
         self.get_player_data().power_stamina += 1
-        return super().execute()
+        return super().reset()
 
 
 class StealBall(Action):
@@ -150,14 +150,6 @@ class Shoot(Action):
     def reset(self):
         self.get_player_data().power_stamina += 2
 
-        x, y = self.src
-
-        self.player.stamina -= 2
-        if self.game.field.grid[x][y].team == AWAY:
-            self.game.field.move_ball(self.game.field.goal_h, self.src)
-        else:
-            self.game.field.move_ball(self.game.field.goal_a, self.src)
-
 
 class GoalTrigger(Action):
     def __init__(self, action: Shoot, team: str) -> None:
@@ -171,9 +163,9 @@ class GoalTrigger(Action):
 
     def reset(self):
         if self.team == AWAY:
-            self.game.statistics_team_a.goals -= 1
+            self.game.away.statistics.goals -= 1
         else:
-            self.game.statistics_team_h.goals -= 1
+            self.game.home.statistics.goals -= 1
 
 
 class AggressionTrigger(Action):
@@ -230,18 +222,16 @@ class AggressionTrigger(Action):
 
 
 class ReorganizeField(Action):
-    def __init__(self, game: Game, team: str, has_ball: bool) -> None:
+    def __init__(self, game: Game, team: str) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.team: str = team
-        self.line_up: LineUp = game.home.line_up if team == HOME else game.away.line_up
         self.memory: List[Tuple[int, int, int, str]] = []
-        self.memory_ball: Tuple[int, int] = (0, 0)
-        self.has_ball: bool = has_ball
+        self.memory_ball: Tuple[int, int] = (-1, -1)
 
     def execute(self):
         for l in self.game.field.grid:
             for n in l:
-                if self.team != n.team:
+                if n.player == -1:
                     continue
                 if n.ball:
                     n.ball = False
@@ -251,31 +241,42 @@ class ReorganizeField(Action):
                 n.player = -1
                 n.team = ''
 
-        for i in self.line_up.line_up.values():
+        for i in self.game.home.line_up.line_up.values():
             r, c, d = i.row, i.col, i.player
             self.game.field.grid[r][c].player = d
-            self.game.field.grid[r][c].team = self.team
+            self.game.field.grid[r][c].team = HOME
 
-        if self.has_ball:
-            r, c = -1, -1
-            if self.team == HOME:
-                r, c = 18, 5
-            else:
-                r, c = 1, 5
-            self.game.field.grid[r][c].ball = True
+        for i in self.game.away.line_up.line_up.values():
+            r, c, d = i.row, i.col, i.player
+            self.game.field.grid[r][c].player = d
+            self.game.field.grid[r][c].team = AWAY
+
+        if self.team == HOME:
+            r, c = 18, 5
+        else:
+            r, c = 1, 5
+        self.game.field.grid[r][c].ball = True
 
     def reset(self):
-        for _, r, c in self.line_up:
+        for i in self.game.home.line_up.line_up.values():
+            r, c, d = i.row, i.col, i.player
             self.game.field.grid[r][c].ball = False
             self.game.field.grid[r][c].player = -1
             self.game.field.grid[r][c].team = ''
 
-        r, c = self.memory_ball
-        self.game.field.grid[r][c].ball = True
+        for i in self.game.away.line_up.line_up.values():
+            r, c, d = i.row, i.col, i.player
+            self.game.field.grid[r][c].ball = False
+            self.game.field.grid[r][c].player = -1
+            self.game.field.grid[r][c].team = ''
 
-        for d, r, c in self.memory:
+        if self.memory_ball != (-1, -1):
+            r, c = self.memory_ball
+            self.game.field.grid[r][c].ball = True
+
+        for d, r, c, t in self.memory:
             self.game.field.grid[r][c].player = d
-            self.game.field.grid[r][c].team = self.team
+            self.game.field.grid[r][c].team = t
 
 
 class ChangeLineUp(Action):
@@ -318,8 +319,8 @@ class ChangePlayer(Action):
 
 
 class MiddleTime(ReorganizeField):
-    def __init__(self, team: str, game: Game) -> None:
-        super().__init__(game, team, team == HOME)
+    def __init__(self,  game: Game, team: str) -> None:
+        super().__init__(game, team)
         self.memory_stamina: Dict[int, int] = {}
 
     def execute(self):
@@ -358,12 +359,10 @@ class Dispatch:
             if action.ok:
                 self.shoot_trigger(action)
 
-            action_h = ReorganizeField(action.game, HOME, action.team != HOME)
-            action_a = ReorganizeField(action.game, AWAY, action.team != AWAY)
-            self.stack.append(action_h)
-            self.stack.append(action_a)
-            action_h.execute()
-            action_a.execute()
+            action = ReorganizeField(
+                action.game, HOME if action.team == AWAY else AWAY)
+            self.stack.append(action)
+            action.execute()
 
     def intercept_trigger(self, action: StealBall):
         game = action.game
@@ -467,6 +466,6 @@ class Dispatch:
 
         return HOME if rnd_h > rnd_a else AWAY
 
-    def reset(self, game: Game):
-        self.stack[-1].reset(game)
+    def reset(self):
+        self.stack[-1].reset()
         self.stack.pop()
