@@ -3,6 +3,7 @@ from football_tools.game import Game
 from football_tools.data import TeamData
 from football_agent.team import HOME, AWAY, TeamAgent
 from typing import Generator, Tuple
+from football_tools.line_up import LineUp
 import math
 
 
@@ -84,7 +85,7 @@ class Simulator:
     def start_instance(self):
         self.game.instance = 0
         self.game.conf_line_ups(
-            self.home.manager.get_line_up(), self.away.manager.get_line_up())
+            self.home.manager.get_line_up(2), self.away.manager.get_line_up(2))
         self.game.instance = 1
 
     def simulate_instance(self, current_player: Tuple[int, str] = (-1, '')):
@@ -132,6 +133,10 @@ class Simulator:
                             self.away.players[n.player].play(self.game))
 
         self.game.instance += 1
+
+    def reset_all(self):
+        while len(self.dispatch.stack) != 0:
+            self.reset_instance()
 
     def reset_instance(self):
         self.game.instance -= 1

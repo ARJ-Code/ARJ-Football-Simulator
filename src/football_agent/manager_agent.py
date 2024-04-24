@@ -1,10 +1,12 @@
-from typing import List
+from typing import List, Callable
 from football_tools.line_up import LineUp
 from football_tools.player_data import PlayerData
 from .player_agent import Player
 from .manager_strategy import ManagerStrategy
 from football_tools.line_up import *
 from football_tools.data import HOME
+from .simulator_agent import SimulatorAgent
+
 import random
 
 
@@ -63,5 +65,5 @@ class Manager:
         self.team: str = team
         self.players: List[Player] = players
 
-    def get_line_up(self) -> LineUp:
-        return self.strategy.get_line_up(possibles_line_up(self.players, self.team))
+    def get_line_up(self, simulator: SimulatorAgent) -> LineUp:
+        return self.strategy.get_line_up(self.team, possibles_line_up(self.players, self.team), simulator)
