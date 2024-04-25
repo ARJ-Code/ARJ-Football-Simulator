@@ -140,10 +140,10 @@ class Simulator:
 
         if self.game.instance % INTERVAL_MANGER == 0:
             if current_manager != HOME:
-                self.dispatch.dispatch_manager(
+                self.dispatch.dispatch_lazy(
                     self.home.manager.action(SimulatorActionManager(self, HOME)))
             if current_manager != AWAY:
-                self.dispatch.dispatch_manager(
+                self.dispatch.dispatch_lazy(
                     self.away.manager.action(SimulatorActionManager(self, AWAY)))
 
         self.game.instance += 1

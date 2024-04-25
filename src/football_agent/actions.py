@@ -279,38 +279,87 @@ class ReorganizeField(Action):
             self.game.field.grid[r][c].team = t
 
 
-class ChangeLineUp(Action):
+class LazyAction(Action, ABC):
+    @abstractmethod
+    def lazy_execute(self):
+        pass
+
+    @abstractmethod
+    def lazy_reset(self):
+        pass
+
+
+class ChangeLineUp(LazyAction):
     def __init__(self,  team: int, game: Game, line_up: LineUp) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.line_up: LineUp = line_up
         self.memory: LineUp = game.home.line_up if team == HOME else game.away.line_up
 
     def execute(self):
+        pass
+
+    def reset(self):
+        pass
+
+    def lazy_execute(self):
         if self.team == HOME:
             self.game.home.line_up = self.line_up
         else:
             self.game.away.line_up = self.line_up
 
-    def reset(self):
+    def lazy_reset(self):
         if self.team == HOME:
             self.game.home.line_up = self.memory
         else:
             self.game.away.line_up = self.memory
 
 
-class ChangePlayer(Action):
+class CompressAction(Action):
+    def __init__(self, actions: List[LazyAction]) -> None:
+        super().__init__((0, 0), (0, 0), -1, '', None)
+        self.actions: List[LazyAction] = actions
+
+    def execute(self):
+        for action in self.actions:
+            action.lazy_execute()
+
+    def reset(self):
+        self.actions.reverse()
+        for action in self.actions:
+            action.lazy_reset()
+
+
+class ChangePlayer(LazyAction):
     def __init__(self, player: int, new_player: int, team: int, game: Game) -> None:
         super().__init__((0, 0), (0, 0), player, team, game)
         self.new_player: int = new_player
+        self.not_execute: bool = False
 
     def execute(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        team_data.in_players.add(self.new_player)
+        team_data.out_players.add(self.player)
+
+    def reset(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        team_data.in_players.remove(self.new_player)
+        team_data.out_players.remove(self.player)
+
+    def lazy_execute(self):
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.player)
 
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        if pos is None:
+            team_data.in_players.remove(self.new_player)
+            self.not_execute = True
+            return
+
         pos.conf_player(self.game.home.data[self.new_player] if self.team ==
                         HOME else self.game.away.data[self.new_player])
-
-        team_data = self.game.home if self.team == HOME else self.game.away
 
         team_data.statistics.changes += 1
         team_data.on_field.remove(self.player)
@@ -318,14 +367,18 @@ class ChangePlayer(Action):
         team_data.on_bench.remove(self.new_player)
         team_data.on_field.add(self.new_player)
 
-    def reset(self):
+    def lazy_reset(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        if self.not_execute:
+            team_data.in_players.add(self.new_player)
+            return
+
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.new_player)
 
         pos.conf_player(self.game.home.data[self.player] if self.team ==
                         HOME else self.game.away.data[self.player])
-
-        team_data = self.game.home if self.team == HOME else self.game.away
 
         team_data.statistics.changes -= 1
         team_data.on_field.add(self.player)
@@ -361,21 +414,21 @@ class MiddleTime(ReorganizeField):
 class Dispatch:
     def __init__(self) -> None:
         self.stack: List[Action] = []
-        self.stack_manager: List[Action] = []
+        self.lazy_stack: List[Action] = []
 
-    def dispatch_manager(self, action: Action):
-        self.stack_manager.append(action)
+    def dispatch_lazy(self, action: Action):
+        if isinstance(action, LazyAction):
+            self.lazy_stack.append(action)
+        self.stack.append(action)
 
-    def clear_manager(self):
-        for action in self.stack_manager:
-            if isinstance(action, Nothing):
-                continue
-            self.dispatch(action)
-        self.stack_manager.clear()
+    def clear_lazy(self):
+        action = CompressAction(self.lazy_stack.copy())
+        self.dispatch(action)
+        self.lazy_stack.clear()
 
     def dispatch(self, action: Action):
-        if isinstance(action, ReorganizeField) and len(self.stack_manager) != 0:
-            self.clear_manager()
+        if isinstance(action, ReorganizeField) and len(self.lazy_stack) != 0:
+            self.clear_lazy()
 
         self.stack.append(action)
         action.execute()
@@ -495,5 +548,8 @@ class Dispatch:
         return HOME if rnd_h > rnd_a else AWAY
 
     def reset(self):
+        if len(self.lazy_stack) != 0 and self.lazy_stack[-1] == self.stack[-1]:
+            self.lazy_stack.pop()
+
         self.stack[-1].reset()
         self.stack.pop()

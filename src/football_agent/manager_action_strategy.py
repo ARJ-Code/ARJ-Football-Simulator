@@ -14,8 +14,8 @@ def possibles_change_player(game: Game, team: str) -> List[Action]:
 
     team_data = game.home if team == HOME else game.away
 
-    # if len(in_players) == 5:
-    #     return []
+    if len(team_data.in_players) == 5:
+        return []
 
     for k, v in team_data.line_up.line_up.items():
         if v.player in team_data.out_players:
