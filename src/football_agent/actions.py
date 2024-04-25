@@ -197,6 +197,9 @@ class AggressionTrigger(Action):
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
             self.game.field[x][y].player = -1
             self.game.field[x][y].team = ''
+            team_data = self.game.home if self.team == HOME else self.game.away
+            team_data.on_field.remove(self.player)
+            team_data.unavailable.add(self.player)
 
     def reset(self):
         x, y = self.src
@@ -204,7 +207,9 @@ class AggressionTrigger(Action):
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
             self.game.field[x][y].player = self.player
             self.game.field[x][y].team = self.team
-            self.break_play = True
+            team_data = self.game.home if self.team == HOME else self.game.away
+            team_data.on_field.add(self.player)
+            team_data.unavailable.remove(self.player)
 
         team_statistics = self.get_statistics()
         player_statistics = self.get_player_statistics()
@@ -467,11 +472,7 @@ class Dispatch:
                        game.away.data[player_src].skill_ball_control]
 
         if self.duel(props_h, props_a) == team:
-            action = StealBallTrigger(action)
-
-            self.stack.append(action)
-
-            action.execute()
+            self.dispatch(StealBallTrigger(action))
 
     def dribbling_trigger(self, action: StealBall):
         game = action.game
@@ -492,26 +493,16 @@ class Dispatch:
             props_a, props_h = props_h, props_a
 
         if self.duel(props_h, props_a) == team:
-            action = StealBallTrigger(action)
-            self.stack.append(action)
-            action.execute()
+            self.duel(StealBallTrigger(action))
         else:
             rnd = randint(
                 game.home.data[player_src].mentality_aggression, 100)
             if rnd >= 90 and rnd < 95:
-                action = AggressionTrigger(action, 0, team)
-                self.stack.append(action)
-                action.execute()
-                self.break_play = True
+                self.dispatch(AggressionTrigger(action, 0, team))
             if rnd >= 95 and rnd < 100:
-                action = AggressionTrigger(action, 1, team)
-                self.stack.append(action)
-                action.execute()
-                self.break_play = True
+                self.dispatch(AggressionTrigger(action, 1, team))
             if rnd == 100:
-                action = AggressionTrigger(action, 2, team)
-                self.stack.append(action)
-                action.execute()
+                self.dispatch(AggressionTrigger(action, 2, team))
 
     def shoot_trigger(self, action: Shoot):
         game = action.game
@@ -535,9 +526,7 @@ class Dispatch:
                        game.away.data[gk].goal_keep_diving]
 
         if self.duel(props_h, props_a) == team:
-            action = GoalTrigger(action, team)
-            self.stack.append(action)
-            action.execute()
+            self.dispatch(GoalTrigger(action, team))
 
     def duel(self, props_h: List[int], props_a: List[int]) -> str:
         mh = sum(props_h)/len(props_h)

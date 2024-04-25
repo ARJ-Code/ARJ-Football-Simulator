@@ -18,7 +18,7 @@ def possibles_change_player(game: Game, team: str) -> List[Action]:
         return []
 
     for k, v in team_data.line_up.line_up.items():
-        if v.player in team_data.out_players:
+        if v.player in team_data.out_players or v.player in team_data.unavailable:
             continue
         for player in team_data.on_bench:
             if player in team_data.in_players:
