@@ -4,6 +4,7 @@ from random import choice
 from .simulator_agent import SimulatorAgent
 from football_tools.game import Game
 from .actions import *
+from .manager_line_up_strategy import possibles_line_up
 
 HOME = 'H'
 AWAY = 'A'
@@ -14,14 +15,14 @@ def possibles_change_player(game: Game, team: str) -> List[Action]:
 
     team_data = game.home if team == HOME else game.away
 
-    if len(team_data.in_players) == 5:
+    if len(team_data.change_history) == 5:
         return []
 
     for k, v in team_data.line_up.line_up.items():
-        if v.player in team_data.out_players or v.player in team_data.unavailable:
+        if any([p for p in team_data.change_history if p[0] == v.player]) or v.player in team_data.unavailable:
             continue
         for player in team_data.on_bench:
-            if player in team_data.in_players:
+            if any([p for p in team_data.change_history if p[1] == player]):
                 continue
             for pos in team_data.data[player].player_positions:
                 if pos in k:
@@ -31,21 +32,36 @@ def possibles_change_player(game: Game, team: str) -> List[Action]:
     return possibles
 
 
+def possibles_action(game: Game, team: str) -> List[Action]:
+    change_options = possibles_change_player(
+        game, team)
+
+    team_data = game.home if team == HOME else game.away
+
+    def get_player(player: int):
+        for p in team_data.change_history:
+            if p[0] == player:
+                return p[1]
+
+        return player
+
+    line_up_players = [team_data.data[get_player(p.player)]
+                       for p in team_data.line_up.line_up.values()]
+
+    line_up_options = [ChangeLineUp(team, game, l)
+                       for l in possibles_line_up(line_up_players, team)]
+
+    return change_options+line_up_options+[Nothing()]
+
+
 class ManagerActionStrategy(ABC):
     @abstractmethod
-    def action(self, team: str, in_players: Set[int], out_players: Set[int], simulator: SimulatorAgent) -> Action:
+    def action(self, team: str, simulator: SimulatorAgent) -> Action:
         pass
 
 
 class ActionRandomStrategy(ManagerActionStrategy):
     def action(self, team: str,  simulator: SimulatorAgent) -> Action:
-        action = choice(possibles_change_player(
-            simulator.game, team,)+[Nothing()])
-
-        if isinstance(action, ChangePlayer):
-            team_data = simulator.game.home if team == HOME else simulator.game.away
-
-            team_data.in_players.add(action.new_player)
-            team_data.out_players.add(action.player)
+        action = choice(possibles_action(simulator.game, team))
 
         return action

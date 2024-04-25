@@ -298,8 +298,7 @@ class ChangeLineUp(LazyAction):
     def __init__(self,  team: int, game: Game, line_up: LineUp) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.line_up: LineUp = line_up
-        self.memory: LineUp = game.home.line_up if team == HOME else game.away.line_up
-
+        
     def execute(self):
         pass
 
@@ -307,6 +306,8 @@ class ChangeLineUp(LazyAction):
         pass
 
     def lazy_execute(self):
+        self.memory: LineUp = self.game.home.line_up if self.team == HOME else self.game.away.line_up
+
         if self.team == HOME:
             self.game.home.line_up = self.line_up
         else:
@@ -343,14 +344,12 @@ class ChangePlayer(LazyAction):
     def execute(self):
         team_data = self.game.home if self.team == HOME else self.game.away
 
-        team_data.in_players.add(self.new_player)
-        team_data.out_players.add(self.player)
+        team_data.change_history.append((self.player, self.new_player))
 
     def reset(self):
         team_data = self.game.home if self.team == HOME else self.game.away
 
-        team_data.in_players.remove(self.new_player)
-        team_data.out_players.remove(self.player)
+        team_data.change_history.remove((self.player, self.new_player))
 
     def lazy_execute(self):
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
@@ -359,7 +358,7 @@ class ChangePlayer(LazyAction):
         team_data = self.game.home if self.team == HOME else self.game.away
 
         if pos is None:
-            team_data.in_players.remove(self.new_player)
+            team_data.change_history.remove((self.player, self.new_player))
             self.not_execute = True
             return
 
@@ -376,15 +375,19 @@ class ChangePlayer(LazyAction):
         team_data = self.game.home if self.team == HOME else self.game.away
 
         if self.not_execute:
-            team_data.in_players.add(self.new_player)
+            team_data.change_history.append((self.player, self.new_player))
             return
 
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.new_player)
 
-        pos.conf_player(self.game.home.data[self.player] if self.team ==
-                        HOME else self.game.away.data[self.player])
-
+        try:
+            pos.conf_player(self.game.home.data[self.player] if self.team ==
+                            HOME else self.game.away.data[self.player])
+        except:
+            print(self.game.field)
+            print(self.new_player, self.player, self.team)
+            raise Exception()
         team_data.statistics.changes -= 1
         team_data.on_field.add(self.player)
         team_data.unavailable.remove(self.player)
@@ -424,7 +427,7 @@ class Dispatch:
     def dispatch_lazy(self, action: Action):
         if isinstance(action, LazyAction):
             self.lazy_stack.append(action)
-        self.stack.append(action)
+        self.dispatch(action)
 
     def clear_lazy(self):
         action = CompressAction(self.lazy_stack.copy())

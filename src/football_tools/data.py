@@ -1,7 +1,6 @@
 from .player_data import PlayerData
 from .line_up import LineUp
-from typing import Dict
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Tuple
 
 AWAY = 'A'
 HOME = 'H'
@@ -45,8 +44,7 @@ class TeamData:
         self.on_bench: Set[int] = set([])
         self.unavailable: Set[int] = set([])
 
-        self.in_players: Set[int] = set([])
-        self.out_players: Set[int] = set([])
+        self.change_history: List[Tuple[int]] = []
 
         for player in data:
             self.players_statistics[player.dorsal] = StatisticsPLayer()
