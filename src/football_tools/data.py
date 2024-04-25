@@ -1,8 +1,7 @@
 from .player_data import PlayerData
 from .line_up import LineUp
 from typing import Dict
-from typing import List, Dict
-from typing import List,  Dict
+from typing import List, Dict, Set
 
 AWAY = 'A'
 HOME = 'H'
@@ -42,9 +41,12 @@ class TeamData:
         self.statistics: StatisticsTeam = StatisticsTeam(name)
         self.players_statistics: Dict[int, StatisticsPLayer] = {}
 
-        self.on_field: List[int] = set([])
-        self.on_bench: List[int] = set([])
-        self.unavailable: List[int] = set([])
+        self.on_field: Set[int] = set([])
+        self.on_bench: Set[int] = set([])
+        self.unavailable: Set[int] = set([])
+
+        self.in_players: Set[int] = set([])
+        self.out_players: Set[int] = set([])
 
         for player in data:
             self.players_statistics[player.dorsal] = StatisticsPLayer()

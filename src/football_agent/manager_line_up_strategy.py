@@ -60,25 +60,11 @@ def possibles_line_up(players: List[PlayerData], team: str) -> List[LineUp]:
     return possibles
 
 
-def possibles_change_player(game: Game, team: str) -> List[Action]:
-    possibles = []
-
-    team_data = game.home if team == HOME else game.away
-
-    for k, v in team_data.line_up.line_up.items():
-        for player in team_data.on_bench:
-            for pos in team_data.data[player].player_positions:
-                if pos in k:
-                    possibles.append(ChangePlayer(
-                        v.player, player, team, game))
-
-    return possibles
-
-
 class ManagerLineUpStrategy(ABC):
     @abstractmethod
     def get_line_up(self, team: str, simulator: SimulatorAgent) -> LineUp:
         pass
+
 
 class LineUpRandomStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str, simulator: SimulatorAgent) -> LineUp:

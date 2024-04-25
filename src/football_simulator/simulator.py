@@ -7,12 +7,15 @@ from football_agent.simulator_agent import SimulatorAgent
 import math
 from typing import List
 
+CANT_INSTANCES = 180
+INTERVAL_MANGER = 10
+
 
 class FootballSimulation:
     def __init__(self, home: Tuple[TeamAgent, TeamData], away: Tuple[TeamAgent, TeamData]) -> None:
         self.home: TeamAgent = home[0]
         self.away: TeamAgent = away[0]
-        self.game: Game = Game(home[1], away[1], 180)
+        self.game: Game = Game(home[1], away[1], CANT_INSTANCES)
 
     def simulate(self) -> Generator[str, None, None]:
         simulator = Simulator(self.home, self.away, self.game)
@@ -87,10 +90,10 @@ class Simulator:
     def start_instance(self):
         self.game.instance = 0
         self.game.conf_line_ups(
-            self.home.manager.get_line_up(SimulatorManager(self)), self.away.manager.get_line_up(SimulatorManager(self)))
+            self.home.manager.get_line_up(SimulatorLineUpManager(self)), self.away.manager.get_line_up(SimulatorLineUpManager(self)))
         self.game.instance = 1
 
-    def simulate_instance(self, current_player: Tuple[int, str] = (-1, '')):
+    def simulate_instance(self, current_player: Tuple[int, str] = (-1, ''), current_manager: str = ''):
         self.stack.append(len(self.dispatch.stack))
 
         if self.game.is_middle():
@@ -135,6 +138,14 @@ class Simulator:
                         self.dispatch.dispatch(
                             self.away.players[n.player].play(self.game))
 
+        if self.game.instance % INTERVAL_MANGER == 0:
+            if current_manager != HOME:
+                self.dispatch.dispatch_manager(
+                    self.home.manager.action(SimulatorActionManager(self, HOME)))
+            if current_manager != AWAY:
+                self.dispatch.dispatch_manager(
+                    self.away.manager.action(SimulatorActionManager(self, AWAY)))
+
         self.game.instance += 1
 
     def reset_all(self):
@@ -161,7 +172,7 @@ class Simulator:
             self.game.away.statistics.possession_instances -= 1
 
 
-class SimulatorManager(SimulatorAgent):
+class SimulatorLineUpManager(SimulatorAgent):
     def __init__(self, simulator: Simulator):
         super().__init__(simulator.game)
         self.simulator = simulator
@@ -172,3 +183,20 @@ class SimulatorManager(SimulatorAgent):
 
     def reset(self):
         self.simulator.reset_all()
+
+
+class SimulatorActionManager(SimulatorAgent):
+    def __init__(self, simulator: Simulator, team: str):
+        super().__init__(simulator.game)
+        self.team: str = team
+        self.simulator = simulator
+        self.instance: int = simulator.game.instance
+
+    def simulate(self):
+        self.simulator.simulate_instance(current_manager=self.team)
+        while not self.game.is_finish():
+            self.simulator.simulate_instance()
+
+    def reset(self):
+        while self.game.instance != self.instance:
+            self.simulator.reset_instance()

@@ -312,6 +312,7 @@ class ChangePlayer(Action):
 
         team_data = self.game.home if self.team == HOME else self.game.away
 
+        team_data.statistics.changes += 1
         team_data.on_field.remove(self.player)
         team_data.unavailable.add(self.player)
         team_data.on_bench.remove(self.new_player)
@@ -326,6 +327,7 @@ class ChangePlayer(Action):
 
         team_data = self.game.home if self.team == HOME else self.game.away
 
+        team_data.statistics.changes -= 1
         team_data.on_field.add(self.player)
         team_data.unavailable.remove(self.player)
         team_data.on_bench.add(self.new_player)
@@ -359,8 +361,22 @@ class MiddleTime(ReorganizeField):
 class Dispatch:
     def __init__(self) -> None:
         self.stack: List[Action] = []
+        self.stack_manager: List[Action] = []
+
+    def dispatch_manager(self, action: Action):
+        self.stack_manager.append(action)
+
+    def clear_manager(self):
+        for action in self.stack_manager:
+            if isinstance(action, Nothing):
+                continue
+            self.dispatch(action)
+        self.stack_manager.clear()
 
     def dispatch(self, action: Action):
+        if isinstance(action, ReorganizeField) and len(self.stack_manager) != 0:
+            self.clear_manager()
+
         self.stack.append(action)
         action.execute()
 
@@ -373,10 +389,8 @@ class Dispatch:
             if action.ok:
                 self.shoot_trigger(action)
 
-            action = ReorganizeField(
-                action.game, HOME if action.team == AWAY else AWAY)
-            self.stack.append(action)
-            action.execute()
+            self.dispatch(ReorganizeField(
+                action.game, HOME if action.team == AWAY else AWAY))
 
     def intercept_trigger(self, action: StealBall):
         game = action.game
