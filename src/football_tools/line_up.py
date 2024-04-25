@@ -16,13 +16,12 @@ class LineUpGrid:
         self.conf: str = NORMAL
 
     def conf_player(self, player: PlayerData):
-        in_position = False
-        for p in player.o_player_positions:
-            if p in self.position:
-                in_position = True
-                break
-        self._set_statistics(player, in_position)
+        self._set_statistics(player, player.club_position == self.position)
         self.player: int = player.dorsal
+
+    def set_statistics(self, player_data: PlayerData) -> None:
+        self._set_statistics(
+            player_data, player_data.club_position in self.position)
 
     def _set_statistics(self, player_data: PlayerData, in_position: bool) -> None:
         if not in_position:
@@ -36,6 +35,7 @@ class LineUpGrid:
             player_data.pace -= 5
             player_data.skill_ball_control -= 5
             player_data.shooting -= 5
+            player_data.overall -= 5
 
 
 class LineUp(ABC):
@@ -60,12 +60,12 @@ class Home433(LineUp):
         self.line_up = {
             'GK': LineUpGrid(18, 5, 'GK'),
             'RB': LineUpGrid(15, 8, 'RB'),
-            'CB1': LineUpGrid(15, 4, 'CB1'),
-            'CB2': LineUpGrid(15, 6, 'CB2'),
+            'LCB': LineUpGrid(15, 4, 'CB1'),
+            'RCB': LineUpGrid(15, 6, 'CB2'),
             'LB': LineUpGrid(15, 2, 'LB'),
             'CDM': LineUpGrid(12, 5, 'CDM'),
-            'CM1': LineUpGrid(10, 7, 'CM1'),
-            'CM2': LineUpGrid(10, 3, 'CM2'),
+            'RCM': LineUpGrid(10, 7, 'RCM'),
+            'LCM': LineUpGrid(10, 3, 'LCM'),
             'RW': LineUpGrid(6, 8, 'RW'),
             'ST': LineUpGrid(6, 5, 'ST'),
             'LW': LineUpGrid(6, 2, 'LW')
@@ -78,12 +78,12 @@ class Away433(LineUp):
         self.line_up = {
             'GK': LineUpGrid(1, 5, 'GK'),
             'RB': LineUpGrid(4, 2, 'RB'),
-            'CB1': LineUpGrid(4, 4, 'CB1'),
-            'CB2': LineUpGrid(4, 6, 'CB2'),
+            'RCB': LineUpGrid(4, 4, 'RCB'),
+            'LCB': LineUpGrid(4, 6, 'LCB'),
             'LB': LineUpGrid(4, 8, 'LB'),
             'CDM': LineUpGrid(7, 5, 'CDM'),
-            'CM1': LineUpGrid(9, 7, 'CM1'),
-            'CM2': LineUpGrid(9, 3, 'CM2'),
+            'LCM': LineUpGrid(9, 7, 'LCM'),
+            'RCM': LineUpGrid(9, 3, 'RCM'),
             'RW': LineUpGrid(13, 8, 'RW'),
             'ST': LineUpGrid(13, 5, 'ST'),
             'LW': LineUpGrid(13, 2, 'LW')
@@ -96,12 +96,12 @@ class Home442(LineUp):
         self.line_up = {
             'GK': LineUpGrid(18, 5, 'GK'),
             'RB': LineUpGrid(15, 8, 'RB'),
-            'CB1': LineUpGrid(15, 4, 'CB1'),
-            'CB2': LineUpGrid(15, 6, 'CB2'),
+            'LCB': LineUpGrid(15, 4, 'LCB'),
+            'RCB': LineUpGrid(15, 6, 'RCB'),
             'LB': LineUpGrid(15, 2, 'LB'),
             'RM': LineUpGrid(10, 8, 'RM'),
-            'CM1': LineUpGrid(11, 6, 'CM1'),
-            'CM2': LineUpGrid(11, 4, 'CM2'),
+            'RCM': LineUpGrid(11, 6, 'RCM'),
+            'LCM': LineUpGrid(11, 4, 'LCM'),
             'LM': LineUpGrid(10, 2, 'LM'),
             'ST1': LineUpGrid(6, 4, 'ST1'),
             'ST2': LineUpGrid(6, 6, 'ST2')
@@ -114,12 +114,12 @@ class Away442(LineUp):
         self.line_up = {
             'GK': LineUpGrid(1, 5, 'GK'),
             'RB': LineUpGrid(4, 2, 'RB'),
-            'CB1': LineUpGrid(4, 4, 'CB1'),
-            'CB2': LineUpGrid(4, 6, 'CB2'),
+            'RCB': LineUpGrid(4, 4, 'RCB'),
+            'LCB': LineUpGrid(4, 6, 'LCB'),
             'LB': LineUpGrid(4, 8, 'LB'),
             'RM': LineUpGrid(9, 8, 'RM'),
-            'CM1': LineUpGrid(8, 4, 'CM1'),
-            'CM2': LineUpGrid(8, 6, 'CM2'),
+            'RCM': LineUpGrid(8, 4, 'RCM'),
+            'LCM': LineUpGrid(8, 6, 'LCM'),
             'LM': LineUpGrid(9, 2, 'LM'),
             'ST1': LineUpGrid(13, 6, 'ST1'),
             'ST2': LineUpGrid(13, 4, 'ST2')
@@ -131,12 +131,12 @@ class Home343(LineUp):
         super().__init__()
         self.line_up = {
             'GK': LineUpGrid(18, 5, 'GK'),
-            'CB1': LineUpGrid(15, 3, 'CB1'),
-            'CB2': LineUpGrid(15, 5, 'CB2'),
-            'CB3': LineUpGrid(15, 7, 'CB3'),
+            'LCB': LineUpGrid(15, 3, 'LCB'),
+            'CB': LineUpGrid(15, 5, 'CB'),
+            'RCB': LineUpGrid(15, 7, 'RCB'),
             'RM': LineUpGrid(10, 8, 'RM'),
-            'CM1': LineUpGrid(11, 6, 'CM1'),
-            'CM2': LineUpGrid(11, 4, 'CM2'),
+            'RCM': LineUpGrid(11, 6, 'RCM'),
+            'LCM': LineUpGrid(11, 4, 'LCM'),
             'LM': LineUpGrid(10, 2, 'LM'),
             'RW': LineUpGrid(6, 8, 'RW'),
             'ST': LineUpGrid(6, 5, 'ST'),
@@ -149,12 +149,12 @@ class Away343(LineUp):
         super().__init__()
         self.line_up = {
             'GK': LineUpGrid(1, 5, 'GK'),
-            'CB1': LineUpGrid(4, 3, 'CB1'),
-            'CB2': LineUpGrid(4, 5, 'CB2'),
-            'CB3': LineUpGrid(4, 7, 'CB3'),
+            'RCB': LineUpGrid(4, 3, 'RCB'),
+            'CB': LineUpGrid(4, 5, 'CB'),
+            'LCB': LineUpGrid(4, 7, 'LCB'),
             'RM': LineUpGrid(9, 8, 'RM'),
-            'CM1': LineUpGrid(8, 6, 'CM1'),
-            'CM2': LineUpGrid(8, 4, 'CM2'),
+            'LCM': LineUpGrid(8, 6, 'LCM'),
+            'RCM': LineUpGrid(8, 4, 'RCM'),
             'LM': LineUpGrid(9, 2, 'LM'),
             'RW': LineUpGrid(13, 8, 'RW'),
             'ST': LineUpGrid(13, 5, 'ST'),
@@ -168,13 +168,13 @@ class Home532(LineUp):
         self.line_up = {
             'GK': LineUpGrid(18, 5, 'GK'),
             'RB': LineUpGrid(14, 9, 'RB'),
-            'CB1': LineUpGrid(15, 3, 'CB1'),
-            'CB2': LineUpGrid(15, 5, 'CB2'),
-            'CB3': LineUpGrid(15, 7, 'CB3'),
+            'LCB': LineUpGrid(15, 3, 'LCB'),
+            'CB': LineUpGrid(15, 5, 'CB'),
+            'RCB': LineUpGrid(15, 7, 'RCB'),
             'LB': LineUpGrid(14, 1, 'LB'),
             'CDM': LineUpGrid(12, 5, 'CDM'),
-            'CM1': LineUpGrid(10, 7, 'CM1'),
-            'CM2': LineUpGrid(10, 3, 'CM2'),
+            'RCM': LineUpGrid(10, 7, 'RCM'),
+            'LCM': LineUpGrid(10, 3, 'LCM'),
             'ST1': LineUpGrid(6, 4, 'ST1'),
             'ST2': LineUpGrid(6, 6, 'ST2')
         }
@@ -186,13 +186,13 @@ class Away532(LineUp):
         self.line_up = {
             'GK': LineUpGrid(1, 5, 'GK'),
             'RB': LineUpGrid(5, 1, 'RB'),
-            'CB1': LineUpGrid(4, 3, 'CB1'),
-            'CB2': LineUpGrid(4, 5, 'CB2'),
-            'CB3': LineUpGrid(4, 7, 'CB3'),
+            'RCB': LineUpGrid(4, 3, 'RCB'),
+            'CB': LineUpGrid(4, 5, 'CB'),
+            'LCB': LineUpGrid(4, 7, 'LCB'),
             'LB': LineUpGrid(5, 9, 'LB'),
             'CDM': LineUpGrid(7, 5, 'CDM'),
-            'CM1': LineUpGrid(9, 7, 'CM1'),
-            'CM2': LineUpGrid(9, 3, 'CM2'),
+            'LCM': LineUpGrid(9, 7, 'LCM'),
+            'RCM': LineUpGrid(9, 3, 'RCM'),
             'ST1': LineUpGrid(13, 6, 'ST1'),
             'ST2': LineUpGrid(13, 4, 'ST2')
         }

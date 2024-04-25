@@ -1,10 +1,13 @@
 from pandas import DataFrame
+from typing import List
+
 
 class PlayerData():
     def __init__(self, df: DataFrame):
         self.short_name: str = df['short_name']
         self.club_name: str = df['club_name']
-        self.player_positions: str = df['player_positions'].split(', ')
+        self.club_position: str = df['club_position']
+        self.player_positions: List[str] = df['player_positions'].split(', ')
         self.overall: int = df['overall']
         self.pace: int = df['pace']
         self.shooting: int = df['shooting']
@@ -22,10 +25,12 @@ class PlayerData():
         self.goal_keep_diving: int = df['goalkeeping_diving']
         self.goal_keep_reflexes: int = df['goalkeeping_reflexes']
         self.skill_ball_control: int = df['skill_ball_control']
+        self.overall: int = df['overall']
 
         self.o_short_name: str = df['short_name']
         self.o_club_name: str = df['club_name']
-        self.o_player_positions: str = df['player_positions'].split(', ')
+        self.o_club_position: str = df['club_position']
+        self.o_player_positions: List[str] = df['player_positions'].split(', ')
         self.o_overall: int = df['overall']
         self.o_pace: int = df['pace']
         self.o_shooting: int = df['shooting']
@@ -43,3 +48,4 @@ class PlayerData():
         self.o_goal_keep_diving: int = df['goalkeeping_diving']
         self.o_goal_keep_reflexes: int = df['goalkeeping_reflexes']
         self.o_skill_ball_control: int = df['skill_ball_control']
+        self.o_overall: int = df['overall']
