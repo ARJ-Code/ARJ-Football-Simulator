@@ -1,8 +1,8 @@
-from football_agent.actions import Dispatch, MiddleTime
+from football_agent.actions import Dispatch, MiddleTime, IncrementInstance, IncrementPossession
 from football_tools.game import Game
 from football_tools.data import TeamData
 from football_agent.team import HOME, AWAY, TeamAgent
-from typing import Generator, Tuple
+from typing import Generator, Tuple, Set
 from football_agent.simulator_agent import SimulatorAgent
 import math
 from typing import List
@@ -30,7 +30,7 @@ class FootballSimulation:
         yield field_str+'\n'+statistics
 
         while not self.game.is_finish():
-            simulator.simulate_instance()
+            simulator.simulate_instance(set([]))
 
             field_str = str(self.game.field)
             statistics = self.game_statistics(
@@ -84,7 +84,6 @@ class Simulator:
         self.home: TeamAgent = home
         self.away: TeamAgent = away
         self.game: Game = game
-        self.stack: List = []
         self.dispatch = Dispatch()
 
     def start_instance(self):
@@ -98,15 +97,13 @@ class Simulator:
         self.game.conf_line_ups(home_line_up, away_line_up)
         self.game.instance = 1
 
-    def simulate_players(self, team: str, player_with_ball: int):
-        if team == HOME:
+    def simulate_players(self, team: str, player_with_ball: int, mask: Set[Tuple[int, str]]):
+        if team == HOME and not (player_with_ball, team) in mask:
             self.dispatch.dispatch(
                 self.home.players[player_with_ball].play(self.game))
-        if team == AWAY:
+        if team == AWAY and not (player_with_ball, team) in mask:
             self.dispatch.dispatch(
                 self.away.players[player_with_ball].play(self.game))
-
-        mask = set()
 
         for l in self.game.field.grid:
             for n in l:
@@ -123,16 +120,16 @@ class Simulator:
                         self.dispatch.dispatch(
                             self.away.players[n.player].play(self.game))
 
-    def simulate_managers(self):
+    def simulate_managers(self, mask: Set[Tuple[int, str]]):
         if self.game.instance % INTERVAL_MANGER == 0:
-            self.dispatch.dispatch(
-                self.home.manager.action(SimulatorActionManager(self, HOME)))
-            self.dispatch.dispatch(
-                self.away.manager.action(SimulatorActionManager(self, AWAY)))
+            if (100, HOME) in mask:
+                self.dispatch.dispatch(
+                    self.home.manager.action(SimulatorActionManager(self, HOME)))
+            if (100, AWAY) in mask:
+                self.dispatch.dispatch(
+                    self.away.manager.action(SimulatorActionManager(self, AWAY)))
 
-    def simulate_instance(self, players: bool = True, managers: bool = True):
-        self.stack.append(len(self.dispatch.stack))
-
+    def simulate_instance(self, mask: Set[Tuple[int, str]]):
         if self.game.is_middle():
             self.dispatch.dispatch(MiddleTime(self.game, HOME))
 
@@ -146,40 +143,24 @@ class Simulator:
                     team = n.team
 
         if team == HOME:
-            self.game.home.statistics.possession_instances += 1
+            self.dispatch.dispatch(IncrementPossession(HOME, self.game))
         if team == AWAY:
-            self.game.away.statistics.possession_instances += 1
+            self.dispatch.dispatch(IncrementPossession(AWAY, self.game))
 
-        if players:
-            self.simulate_players(team, player_with_ball)
+        self.simulate_players(team, player_with_ball, mask)
+        self.simulate_managers(mask)
 
-        if managers:
-            self.simulate_managers()
-
-        self.game.instance += 1
+        self.dispatch.dispatch(IncrementInstance(self.game))
 
     def reset_all(self):
         while self.game.instance != 1:
             self.reset_instance()
 
     def reset_instance(self):
-        self.game.instance -= 1
+        self.dispatch.reset()
 
-        while len(self.dispatch.stack) != self.stack[-1]:
+        while len(self.dispatch.stack) != 0 and not isinstance(self.dispatch.stack[-1], IncrementInstance):
             self.dispatch.reset()
-        self.stack.pop()
-
-        team = ''
-
-        for l in self.game.field.grid:
-            for n in l:
-                if n.ball:
-                    team = n.team
-
-        if team == HOME:
-            self.game.home.statistics.possession_instances -= 1
-        if team == AWAY:
-            self.game.away.statistics.possession_instances -= 1
 
 
 class SimulatorLineUpManager(SimulatorAgent):
@@ -189,30 +170,42 @@ class SimulatorLineUpManager(SimulatorAgent):
 
     def simulate(self):
         while not self.game.is_finish():
-            self.simulator.simulate_instance()
+            self.simulator.simulate_instance(set([]))
 
     def reset(self):
         self.simulator.reset_all()
 
+    def simulate_current(self):
+        return super().simulate_current()
+
+    def reset_current(self):
+        return super().reset_current()
+
     def dispatch(self) -> Dispatch:
-        return self.simulator.dispatch
+        return super().dispatch()
 
 
 class SimulatorActionManager(SimulatorAgent):
-    def __init__(self, simulator: Simulator, team: str):
+    def __init__(self, simulator: Simulator, team: str, mask: Set[Tuple[int, str]]):
         super().__init__(simulator.game)
         self.team: str = team
         self.simulator = simulator
         self.instance: int = simulator.game.instance
+        self.stack_len: int = len(simulator.dispatch.stack)
+        self.mask: Set[Tuple[int, str]] = mask
 
     def simulate(self):
-        self.simulator.simulate_instance(current_manager=self.team)
-        while not self.game.is_finish():
-            self.simulator.simulate_instance()
+        self.simulator.simulate_instance(set([(100, self.team)]))
 
     def reset(self):
-        while self.game.instance != self.instance:
-            self.simulator.reset_instance()
+        self.simulator.reset_instance()
+
+    def simulate_current(self):
+        self.simulator.simulate_instance(self.mask.copy())
+
+    def reset_current(self):
+        while len(self.simulator.dispatch.stack) != self.stack_len:
+            self.simulator.dispatch.reset()
 
     def dispatch(self) -> Dispatch:
         return self.simulator.dispatch

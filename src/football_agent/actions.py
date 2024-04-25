@@ -415,6 +415,30 @@ class MiddleTime(ReorganizeField):
             data[p].power_stamina = self.memory_stamina[p]
 
 
+class IncrementInstance(Action):
+    def __init__(self, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), -1, '', game)
+
+    def execute(self):
+        self.game.instance += 1
+
+    def reset(self):
+        self.game.instance -= 1
+
+
+class IncrementPossession(Action):
+    def __init__(self,  team: int, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, game)
+
+    def execute(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+        team_data.statistics.possession_instances += 1
+
+    def reset(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+        team_data.statistics.possession_instances += 1
+
+
 class Dispatch:
     def __init__(self) -> None:
         self.stack: List[Action] = []

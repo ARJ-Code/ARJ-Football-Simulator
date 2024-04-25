@@ -18,3 +18,11 @@ class SimulatorAgent(ABC):
     @abstractmethod
     def dispatch(self) -> Dispatch:
         pass
+
+    @abstractmethod
+    def simulate_current(self):
+        pass
+
+    @abstractmethod
+    def reset_current(self):
+        pass
