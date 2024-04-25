@@ -77,14 +77,15 @@ class LineUpRandomStrategy(ManagerLineUpStrategy):
 class LineUpSimulateStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str,  simulator: SimulatorAgent) -> LineUp:
         home_line_ups = possibles_line_up(
-            simulator.game.home.data.values(), HOME)
+            simulator.game.home.data.values(), HOME)[:1]
         away_line_ups = possibles_line_up(
-            simulator.game.away.data.values(), AWAY)
+            simulator.game.away.data.values(), AWAY)[:1]
 
         results = []
 
         for i, home in enumerate(home_line_ups):
             for j, away in enumerate(away_line_ups):
+                simulator.game.instance = 0
                 simulator.game.conf_line_ups(home, away)
                 simulator.game.instance = 1
 

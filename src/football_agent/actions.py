@@ -298,7 +298,7 @@ class ChangeLineUp(LazyAction):
     def __init__(self,  team: int, game: Game, line_up: LineUp) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.line_up: LineUp = line_up
-        
+
     def execute(self):
         pass
 
@@ -381,13 +381,9 @@ class ChangePlayer(LazyAction):
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.new_player)
 
-        try:
-            pos.conf_player(self.game.home.data[self.player] if self.team ==
-                            HOME else self.game.away.data[self.player])
-        except:
-            print(self.game.field)
-            print(self.new_player, self.player, self.team)
-            raise Exception()
+        pos.conf_player(
+            self.game.home.data[self.player] if self.team == HOME else self.game.away.data[self.player])
+
         team_data.statistics.changes -= 1
         team_data.on_field.add(self.player)
         team_data.unavailable.remove(self.player)
@@ -424,17 +420,15 @@ class Dispatch:
         self.stack: List[Action] = []
         self.lazy_stack: List[Action] = []
 
-    def dispatch_lazy(self, action: Action):
-        if isinstance(action, LazyAction):
-            self.lazy_stack.append(action)
-        self.dispatch(action)
-
     def clear_lazy(self):
         action = CompressAction(self.lazy_stack.copy())
         self.dispatch(action)
         self.lazy_stack.clear()
 
     def dispatch(self, action: Action):
+        if isinstance(action, LazyAction):
+            self.lazy_stack.append(action)
+
         if isinstance(action, ReorganizeField) and len(self.lazy_stack) != 0:
             self.clear_lazy()
 

@@ -163,4 +163,4 @@ class Game:
         return self.instance == self.cant_instances/2+1
 
     def is_finish(self):
-        return self.instance == self.cant_instances+1
+        return self.instance >= self.cant_instances+1

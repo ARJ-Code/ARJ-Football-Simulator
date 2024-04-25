@@ -89,11 +89,48 @@ class Simulator:
 
     def start_instance(self):
         self.game.instance = 0
-        self.game.conf_line_ups(
-            self.home.manager.get_line_up(SimulatorLineUpManager(self)), self.away.manager.get_line_up(SimulatorLineUpManager(self)))
+
+        home_line_up = self.home.manager.get_line_up(
+            SimulatorLineUpManager(self))
+        away_line_up = self.away.manager.get_line_up(
+            SimulatorLineUpManager(self))
+
+        self.game.conf_line_ups(home_line_up, away_line_up)
         self.game.instance = 1
 
-    def simulate_instance(self, current_player: Tuple[int, str] = (-1, ''), current_manager: str = ''):
+    def simulate_players(self, team: str, player_with_ball: int):
+        if team == HOME:
+            self.dispatch.dispatch(
+                self.home.players[player_with_ball].play(self.game))
+        if team == AWAY:
+            self.dispatch.dispatch(
+                self.away.players[player_with_ball].play(self.game))
+
+        mask = set()
+
+        for l in self.game.field.grid:
+            for n in l:
+
+                if (n.player, n.team) in mask:
+                    continue
+
+                if not n.ball:
+                    mask.add((n.player, n.team))
+                    if n.team == HOME:
+                        self.dispatch.dispatch(
+                            self.home.players[n.player].play(self.game))
+                    if n.team == AWAY:
+                        self.dispatch.dispatch(
+                            self.away.players[n.player].play(self.game))
+
+    def simulate_managers(self):
+        if self.game.instance % INTERVAL_MANGER == 0:
+            self.dispatch.dispatch(
+                self.home.manager.action(SimulatorActionManager(self, HOME)))
+            self.dispatch.dispatch(
+                self.away.manager.action(SimulatorActionManager(self, AWAY)))
+
+    def simulate_instance(self, players: bool = True, managers: bool = True):
         self.stack.append(len(self.dispatch.stack))
 
         if self.game.is_middle():
@@ -110,41 +147,14 @@ class Simulator:
 
         if team == HOME:
             self.game.home.statistics.possession_instances += 1
-            if current_player[1] != HOME and current_player[0] != player_with_ball:
-                self.dispatch.dispatch(
-                    self.home.players[player_with_ball].play(self.game))
         if team == AWAY:
             self.game.away.statistics.possession_instances += 1
-            if current_player[1] != AWAY and current_player[0] != player_with_ball:
-                self.dispatch.dispatch(
-                    self.away.players[player_with_ball].play(self.game))
 
-        mask = set()
+        if players:
+            self.simulate_players(team, player_with_ball)
 
-        for l in self.game.field.grid:
-            for n in l:
-
-                if (n.player, n.team) in mask:
-                    continue
-
-                if n.team == current_player[1] and n.player == current_player[0]:
-                    continue
-                if not n.ball:
-                    mask.add((n.player, n.team))
-                    if n.team == HOME:
-                        self.dispatch.dispatch(
-                            self.home.players[n.player].play(self.game))
-                    if n.team == AWAY:
-                        self.dispatch.dispatch(
-                            self.away.players[n.player].play(self.game))
-
-        if self.game.instance % INTERVAL_MANGER == 0:
-            if current_manager != HOME:
-                self.dispatch.dispatch_lazy(
-                    self.home.manager.action(SimulatorActionManager(self, HOME)))
-            if current_manager != AWAY:
-                self.dispatch.dispatch_lazy(
-                    self.away.manager.action(SimulatorActionManager(self, AWAY)))
+        if managers:
+            self.simulate_managers()
 
         self.game.instance += 1
 
@@ -184,6 +194,9 @@ class SimulatorLineUpManager(SimulatorAgent):
     def reset(self):
         self.simulator.reset_all()
 
+    def dispatch(self) -> Dispatch:
+        return self.simulator.dispatch
+
 
 class SimulatorActionManager(SimulatorAgent):
     def __init__(self, simulator: Simulator, team: str):
@@ -200,3 +213,6 @@ class SimulatorActionManager(SimulatorAgent):
     def reset(self):
         while self.game.instance != self.instance:
             self.simulator.reset_instance()
+
+    def dispatch(self) -> Dispatch:
+        return self.simulator.dispatch

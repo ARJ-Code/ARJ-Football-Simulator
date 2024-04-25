@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List, Set
 from random import choice
+
+from football_agent.actions import Action
 from .simulator_agent import SimulatorAgent
 from football_tools.game import Game
 from .actions import *
@@ -62,6 +64,27 @@ class ManagerActionStrategy(ABC):
 
 class ActionRandomStrategy(ManagerActionStrategy):
     def action(self, team: str,  simulator: SimulatorAgent) -> Action:
-        action = choice(possibles_action(simulator.game, team))
+        return choice(possibles_action(simulator.game, team))
 
-        return action
+
+class ActionSimulateStrategy(ManagerActionStrategy):
+    def action(self, team: str, simulator: SimulatorAgent) -> Action:
+        actions = possibles_action(simulator.game, team)
+
+        results = []
+
+        for i, action in enumerate(actions):
+            simulator.dispatch().dispatch_lazy(action)
+            simulator.simulate()
+
+            r = simulator.game.home.statistics.goals-simulator.game.away.statistics.goals
+            if team == AWAY:
+                r = -r
+            results.append((r, i))
+           
+            simulator.reset()
+            simulator.dispatch().reset()
+
+        action, _ = max(results, key=lambda x: x[0])
+
+        return actions[action]
