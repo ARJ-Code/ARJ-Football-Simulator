@@ -31,7 +31,7 @@ def conf_game(home_n: str, away_n: str):
     away_d = TeamData(away_n, away)
 
     home_a = TeamAgent(
-        home_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', DefensorStrategy()) for p in home})
+        home_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', RandomStrategy()) for p in home})
     away_a = TeamAgent(
         away_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'A'), {p.dorsal: Player(50, p.dorsal, 'A', OfensorStrategy()) for p in away})
 

@@ -11,6 +11,8 @@ from .manager_line_up_strategy import possibles_line_up
 HOME = 'H'
 AWAY = 'A'
 
+CANT_SIMULATIONS = 1
+
 
 def possibles_change_player(game: Game, team: str) -> List[Action]:
     possibles = []
@@ -80,28 +82,31 @@ class ActionRandomStrategy(ManagerActionStrategy):
 
 class ActionSimulateStrategy(ManagerActionStrategy):
     def action(self, team: str, simulator: SimulatorAgent) -> Action:
+        print(f'{"HOME" if team ==HOME else "AWAY"} manager is thinking')
+
         actions = possibles_action(simulator.game, team)
 
         results = {i: (0, 0) for i, _ in enumerate(actions)}
 
         for i, action in enumerate(actions):
-            simulator.dispatch().dispatch(action)
-            simulator.simulate_current()
-            simulator.simulate()
+            for _ in range(CANT_SIMULATIONS):
+                simulator.dispatch().dispatch(action)
+                simulator.simulate_current()
+                simulator.simulate()
 
-            r = simulator.game.home.statistics.goals-simulator.game.away.statistics.goals
-            if team == AWAY:
-                r = -r
+                r = simulator.game.home.statistics.goals-simulator.game.away.statistics.goals
+                if team == AWAY:
+                    r = -r
 
-            c, g = results[i]
+                c, g = results[i]
 
-            if r > 0:
-                c += 1
+                if r > 0:
+                    c += 1
 
-            results[i] = (c, g+r)
+                results[i] = (c, g+r)
 
-            simulator.reset()
-            simulator.reset_current()
+                simulator.reset()
+                simulator.reset_current()
 
         action, _ = max(results.items(), key=lambda x: x[1][0]*1000+x[1][1])
 

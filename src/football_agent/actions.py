@@ -173,7 +173,7 @@ class AggressionTrigger(Action):
         super().__init__(action.src, action.dest, action.player, action.team, action.game)
         self.level: int = level
         x, y = self.src
-        dorsal = self.game.field[x][y].player
+        dorsal = self.game.field.grid[x][y].player
 
         self.dorsal: int = dorsal
 
@@ -195,8 +195,8 @@ class AggressionTrigger(Action):
             player_statistics.red_cards += 1
 
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
-            self.game.field[x][y].player = -1
-            self.game.field[x][y].team = ''
+            self.game.field.grid[x][y].player = -1
+            self.game.field.grid[x][y].team = ''
             team_data = self.game.home if self.team == HOME else self.game.away
             team_data.on_field.remove(self.player)
             team_data.unavailable.add(self.player)
@@ -248,11 +248,15 @@ class ReorganizeField(Action):
 
         for i in self.game.home.line_up.line_up.values():
             r, c, d = i.row, i.col, i.player
+            if d in self.game.home.unavailable:
+                continue
             self.game.field.grid[r][c].player = d
             self.game.field.grid[r][c].team = HOME
 
         for i in self.game.away.line_up.line_up.values():
             r, c, d = i.row, i.col, i.player
+            if d in self.game.away.unavailable:
+                continue
             self.game.field.grid[r][c].player = d
             self.game.field.grid[r][c].team = AWAY
 
@@ -438,6 +442,7 @@ class IncrementPossession(Action):
         team_data = self.game.home if self.team == HOME else self.game.away
         team_data.statistics.possession_instances -= 1
 
+
 class ManagerNothing(Action):
     def __init__(self) -> None:
         super().__init__((0, 0), (0, 0), -1, '', None)
@@ -504,6 +509,8 @@ class Dispatch:
 
         if self.duel(props_h, props_a) == team:
             self.dispatch(StealBallTrigger(action))
+        else:
+            self.aggression_trigger(game, player_src, action, team)
 
     def dribbling_trigger(self, action: StealBall):
         game = action.game
@@ -526,14 +533,19 @@ class Dispatch:
         if self.duel(props_h, props_a) == team:
             self.duel(StealBallTrigger(action))
         else:
-            rnd = randint(
-                game.home.data[player_src].mentality_aggression, 100)
-            if rnd >= 90 and rnd < 95:
-                self.dispatch(AggressionTrigger(action, 0, team))
-            if rnd >= 95 and rnd < 100:
-                self.dispatch(AggressionTrigger(action, 1, team))
-            if rnd == 100:
-                self.dispatch(AggressionTrigger(action, 2, team))
+            self.aggression_trigger(game, player_src, action, team)
+
+    def aggression_trigger(self, game: Game, player_src: int, action: Action, team: str):
+        team_data = game.home if team == HOME else game.away
+
+        rnd = randint(
+            team_data.data[player_src].mentality_aggression, 100)
+        if rnd >= 70 and rnd < 85:
+            self.dispatch(AggressionTrigger(action, 0))
+        if rnd >= 85 and rnd < 95:
+            self.dispatch(AggressionTrigger(action, 1))
+        if rnd >= 95:
+            self.dispatch(AggressionTrigger(action, 2))
 
     def shoot_trigger(self, action: Shoot):
         game = action.game

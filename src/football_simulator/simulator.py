@@ -4,11 +4,10 @@ from football_tools.data import TeamData
 from football_agent.team import HOME, AWAY, TeamAgent
 from typing import Generator, Tuple, Set
 from football_agent.simulator_agent import SimulatorAgent
-from football_llm.interpret_game import interpret_game
 import math
 
 CANT_INSTANCES = 180
-INTERVAL_MANGER = 10
+INTERVAL_MANGER = 20
 
 
 class FootballSimulation:
@@ -18,7 +17,6 @@ class FootballSimulation:
         self.game: Game = Game(home[1], away[1], CANT_INSTANCES)
 
     def simulate(self) -> Generator[str, None, None]:
-        history = []
         simulator = Simulator(self.home, self.away, self.game)
 
         simulator.start_instance()
@@ -29,7 +27,6 @@ class FootballSimulation:
             self.game.instance-1, self.game.cant_instances)
 
         yield field_str+'\n'+statistics
-        history.append(self.game.field.str_code()+'\n'+statistics)
 
         while not self.game.is_finish():
             simulator.simulate_instance(set([]))
@@ -39,7 +36,6 @@ class FootballSimulation:
                 self.game.instance-1, self.game.cant_instances)
 
             yield field_str+'\n'+statistics
-            history.append(self.game.field.str_code()+'\n'+statistics)
 
     def game_statistics(self, instance: int, actions: int) -> str:
         nh = f'\033[34m{self.home.name}\033[0m'
