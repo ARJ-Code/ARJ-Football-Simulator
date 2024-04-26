@@ -1,4 +1,5 @@
 from football_tools.game import Game
+from .actions import Dispatch
 from abc import ABC, abstractmethod
 
 
@@ -12,4 +13,16 @@ class SimulatorAgent(ABC):
 
     @abstractmethod
     def reset(self):
+        pass
+
+    @abstractmethod
+    def dispatch(self) -> Dispatch:
+        pass
+
+    @abstractmethod
+    def simulate_current(self):
+        pass
+
+    @abstractmethod
+    def reset_current(self):
         pass

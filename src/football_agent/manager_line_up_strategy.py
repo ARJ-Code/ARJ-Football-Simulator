@@ -1,7 +1,7 @@
 from typing import List
 from abc import ABC, abstractmethod
 from random import choice
-from .actions import Action
+from .actions import *
 from football_tools.line_up import *
 from football_tools.game import Game
 from .simulator_agent import SimulatorAgent
@@ -60,17 +60,13 @@ def possibles_line_up(players: List[PlayerData], team: str) -> List[LineUp]:
     return possibles
 
 
-class ManagerStrategy(ABC):
+class ManagerLineUpStrategy(ABC):
     @abstractmethod
     def get_line_up(self, team: str, simulator: SimulatorAgent) -> LineUp:
         pass
 
-    @abstractmethod
-    def action(self, game: Game) -> Action:
-        pass
 
-
-class RandomStrategy(ManagerStrategy):
+class LineUpRandomStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str, simulator: SimulatorAgent) -> LineUp:
         return choice(possibles_line_up(simulator.game.home.data.values(), HOME) if team == HOME else possibles_line_up(simulator.game.away.data.values(), AWAY))
 
@@ -78,26 +74,50 @@ class RandomStrategy(ManagerStrategy):
         return super().action(game)
 
 
-class SimulateStrategy(ManagerStrategy):
+class LineUpSimulateStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str,  simulator: SimulatorAgent) -> LineUp:
         home_line_ups = possibles_line_up(
-            simulator.game.home.data.values(), HOME)
+            simulator.game.home.data.values(), HOME)[:1]
         away_line_ups = possibles_line_up(
-            simulator.game.away.data.values(), AWAY)
+            simulator.game.away.data.values(), AWAY)[:1]
 
         results = []
 
-        for home in home_line_ups:
-            for away in away_line_ups:
+        for i, home in enumerate(home_line_ups):
+            for j, away in enumerate(away_line_ups):
+                simulator.game.instance = 0
                 simulator.game.conf_line_ups(home, away)
                 simulator.game.instance = 1
 
                 simulator.simulate()
+
+                results.append((i, j, simulator.game.home.statistics.goals,
+                                simulator.game.away.statistics.goals))
+
                 simulator.reset()
                 simulator.game.reset()
-                print(simulator.game.home.statistics.possession_instances)
-            
-        return choice(possibles_line_up(simulator.game.home.data.values(), HOME) if team == HOME else possibles_line_up(simulator.game.away.data.values(), AWAY))
+
+        ind = 0
+        mv = 0
+
+        results_by_sim = {}
+
+        for i, j, _, _ in results:
+            results_by_sim[i if team == HOME else j] = (0, 0)
+
+        for i, j, h, a in results:
+            r = h-a if team == HOME else a-h
+
+            c, g = results_by_sim[i if team == HOME else j]
+            results_by_sim[i if team == HOME else j] = (
+                c+(1 if r > 0 else 0), g + r)
+
+        for k, v in results_by_sim.items():
+            if v[0]*1000+v[1] > mv:
+                ind = k
+                mv = v[0]*1000+v[1]
+
+        return home_line_ups[ind] if team == HOME else away_line_ups[ind]
 
     def action(self, game: Game) -> Action:
         return super().action(game)

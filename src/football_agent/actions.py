@@ -197,6 +197,9 @@ class AggressionTrigger(Action):
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
             self.game.field[x][y].player = -1
             self.game.field[x][y].team = ''
+            team_data = self.game.home if self.team == HOME else self.game.away
+            team_data.on_field.remove(self.player)
+            team_data.unavailable.add(self.player)
 
     def reset(self):
         x, y = self.src
@@ -204,7 +207,9 @@ class AggressionTrigger(Action):
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
             self.game.field[x][y].player = self.player
             self.game.field[x][y].team = self.team
-            self.break_play = True
+            team_data = self.game.home if self.team == HOME else self.game.away
+            team_data.on_field.add(self.player)
+            team_data.unavailable.remove(self.player)
 
         team_statistics = self.get_statistics()
         player_statistics = self.get_player_statistics()
@@ -279,43 +284,111 @@ class ReorganizeField(Action):
             self.game.field.grid[r][c].team = t
 
 
-class ChangeLineUp(Action):
+class LazyAction(Action, ABC):
+    @abstractmethod
+    def lazy_execute(self):
+        pass
+
+    @abstractmethod
+    def lazy_reset(self):
+        pass
+
+
+class ChangeLineUp(LazyAction):
     def __init__(self,  team: int, game: Game, line_up: LineUp) -> None:
         super().__init__((0, 0), (0, 0), -1, team, game)
         self.line_up: LineUp = line_up
-        self.memory: LineUp = game.home.line_up if team == HOME else game.away.line_up
 
     def execute(self):
+        pass
+
+    def reset(self):
+        pass
+
+    def lazy_execute(self):
+        self.memory: LineUp = self.game.home.line_up if self.team == HOME else self.game.away.line_up
+
         if self.team == HOME:
             self.game.home.line_up = self.line_up
         else:
             self.game.away.line_up = self.line_up
 
-    def reset(self):
+    def lazy_reset(self):
         if self.team == HOME:
             self.game.home.line_up = self.memory
         else:
             self.game.away.line_up = self.memory
 
 
-class ChangePlayer(Action):
+class CompressAction(Action):
+    def __init__(self, actions: List[LazyAction]) -> None:
+        super().__init__((0, 0), (0, 0), -1, '', None)
+        self.actions: List[LazyAction] = actions
+
+    def execute(self):
+        for action in self.actions:
+            action.lazy_execute()
+
+    def reset(self):
+        self.actions.reverse()
+        for action in self.actions:
+            action.lazy_reset()
+
+
+class ChangePlayer(LazyAction):
     def __init__(self, player: int, new_player: int, team: int, game: Game) -> None:
         super().__init__((0, 0), (0, 0), player, team, game)
         self.new_player: int = new_player
+        self.not_execute: bool = False
 
     def execute(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        team_data.change_history.append((self.player, self.new_player))
+
+    def reset(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        team_data.change_history.remove((self.player, self.new_player))
+
+    def lazy_execute(self):
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.player)
+
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        if pos is None:
+            team_data.change_history.remove((self.player, self.new_player))
+            self.not_execute = True
+            return
 
         pos.conf_player(self.game.home.data[self.new_player] if self.team ==
                         HOME else self.game.away.data[self.new_player])
 
-    def reset(self):
+        team_data.statistics.changes += 1
+        team_data.on_field.remove(self.player)
+        team_data.unavailable.add(self.player)
+        team_data.on_bench.remove(self.new_player)
+        team_data.on_field.add(self.new_player)
+
+    def lazy_reset(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+
+        if self.not_execute:
+            team_data.change_history.append((self.player, self.new_player))
+            return
+
         line_up = self.game.home.line_up if self.team == HOME else self.game.away.line_up
         pos = line_up.get_player_position(self.new_player)
 
-        pos.conf_player(self.game.home.data[self.player] if self.team ==
-                        HOME else self.game.away.data[self.player])
+        pos.conf_player(
+            self.game.home.data[self.player] if self.team == HOME else self.game.away.data[self.player])
+
+        team_data.statistics.changes -= 1
+        team_data.on_field.add(self.player)
+        team_data.unavailable.remove(self.player)
+        team_data.on_bench.add(self.new_player)
+        team_data.on_field.remove(self.new_player)
 
 
 class MiddleTime(ReorganizeField):
@@ -342,11 +415,47 @@ class MiddleTime(ReorganizeField):
             data[p].power_stamina = self.memory_stamina[p]
 
 
+class IncrementInstance(Action):
+    def __init__(self, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), -1, '', game)
+
+    def execute(self):
+        self.game.instance += 1
+
+    def reset(self):
+        self.game.instance -= 1
+
+
+class IncrementPossession(Action):
+    def __init__(self,  team: int, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), -1, team, game)
+
+    def execute(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+        team_data.statistics.possession_instances += 1
+
+    def reset(self):
+        team_data = self.game.home if self.team == HOME else self.game.away
+        team_data.statistics.possession_instances -= 1
+
+
 class Dispatch:
     def __init__(self) -> None:
         self.stack: List[Action] = []
+        self.lazy_stack: List[Action] = []
+
+    def clear_lazy(self):
+        action = CompressAction(self.lazy_stack.copy())
+        self.dispatch(action)
+        self.lazy_stack.clear()
 
     def dispatch(self, action: Action):
+        if isinstance(action, LazyAction):
+            self.lazy_stack.append(action)
+
+        if isinstance(action, ReorganizeField) and len(self.lazy_stack) != 0:
+            self.clear_lazy()
+
         self.stack.append(action)
         action.execute()
 
@@ -359,10 +468,8 @@ class Dispatch:
             if action.ok:
                 self.shoot_trigger(action)
 
-            action = ReorganizeField(
-                action.game, HOME if action.team == AWAY else AWAY)
-            self.stack.append(action)
-            action.execute()
+            self.dispatch(ReorganizeField(
+                action.game, HOME if action.team == AWAY else AWAY))
 
     def intercept_trigger(self, action: StealBall):
         game = action.game
@@ -386,11 +493,7 @@ class Dispatch:
                        game.away.data[player_src].skill_ball_control]
 
         if self.duel(props_h, props_a) == team:
-            action = StealBallTrigger(action)
-
-            self.stack.append(action)
-
-            action.execute()
+            self.dispatch(StealBallTrigger(action))
 
     def dribbling_trigger(self, action: StealBall):
         game = action.game
@@ -411,26 +514,16 @@ class Dispatch:
             props_a, props_h = props_h, props_a
 
         if self.duel(props_h, props_a) == team:
-            action = StealBallTrigger(action)
-            self.stack.append(action)
-            action.execute()
+            self.duel(StealBallTrigger(action))
         else:
             rnd = randint(
                 game.home.data[player_src].mentality_aggression, 100)
             if rnd >= 90 and rnd < 95:
-                action = AggressionTrigger(action, 0, team)
-                self.stack.append(action)
-                action.execute()
-                self.break_play = True
+                self.dispatch(AggressionTrigger(action, 0, team))
             if rnd >= 95 and rnd < 100:
-                action = AggressionTrigger(action, 1, team)
-                self.stack.append(action)
-                action.execute()
-                self.break_play = True
+                self.dispatch(AggressionTrigger(action, 1, team))
             if rnd == 100:
-                action = AggressionTrigger(action, 2, team)
-                self.stack.append(action)
-                action.execute()
+                self.dispatch(AggressionTrigger(action, 2, team))
 
     def shoot_trigger(self, action: Shoot):
         game = action.game
@@ -454,9 +547,7 @@ class Dispatch:
                        game.away.data[gk].goal_keep_diving]
 
         if self.duel(props_h, props_a) == team:
-            action = GoalTrigger(action, team)
-            self.stack.append(action)
-            action.execute()
+            self.dispatch(GoalTrigger(action, team))
 
     def duel(self, props_h: List[int], props_a: List[int]) -> str:
         mh = sum(props_h)/len(props_h)
@@ -467,5 +558,10 @@ class Dispatch:
         return HOME if rnd_h > rnd_a else AWAY
 
     def reset(self):
+        if isinstance(self.stack[-1], CompressAction):
+            self.lazy_stack = self.stack[-1].actions.copy()
+        if len(self.lazy_stack) != 0 and self.lazy_stack[-1] == self.stack[-1]:
+            self.lazy_stack.pop()
+
         self.stack[-1].reset()
         self.stack.pop()

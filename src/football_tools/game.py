@@ -146,6 +146,16 @@ class Game:
         self.away.line_up = line_up_a
         self.field.conf_line_ups(line_up_h, line_up_a)
 
+        self.home.on_field = set(
+            [p.player for p in line_up_h.line_up.values()])
+        self.away.on_field = set(
+            [p.player for p in line_up_a.line_up.values()])
+
+        self.home.on_bench = set([
+            p for p in self.home.data.keys() if not p in self.home.on_field])
+        self.away.on_bench = set([
+            p for p in self.away.data.keys() if not p in self.away.on_field])
+
     def is_start(self):
         return self.instance == 0
 
@@ -153,4 +163,4 @@ class Game:
         return self.instance == self.cant_instances/2+1
 
     def is_finish(self):
-        return self.instance == self.cant_instances+1
+        return self.instance >= self.cant_instances+1
