@@ -5,10 +5,9 @@ from football_agent.team import HOME, AWAY, TeamAgent
 from typing import Generator, Tuple, Set
 from football_agent.simulator_agent import SimulatorAgent
 import math
-from typing import List
 
 CANT_INSTANCES = 180
-INTERVAL_MANGER = 10
+INTERVAL_MANGER = 20
 
 
 class FootballSimulation:

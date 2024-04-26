@@ -10,6 +10,8 @@ import random
 HOME = 'H'
 AWAY = 'A'
 
+CANT_SIMULATIONS = 1
+
 
 def players_by_position(players: List[PlayerData], line_up_grid: LineUpGrid) -> List[PlayerData]:
     r = []
@@ -76,26 +78,29 @@ class LineUpRandomStrategy(ManagerLineUpStrategy):
 
 class LineUpSimulateStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str,  simulator: SimulatorAgent) -> LineUp:
+        print(f'{"HOME" if team ==HOME else "AWAY"} manager is thinking')
+
         home_line_ups = possibles_line_up(
-            simulator.game.home.data.values(), HOME)[:1]
+            simulator.game.home.data.values(), HOME)
         away_line_ups = possibles_line_up(
-            simulator.game.away.data.values(), AWAY)[:1]
+            simulator.game.away.data.values(), AWAY)
 
         results = []
 
         for i, home in enumerate(home_line_ups):
             for j, away in enumerate(away_line_ups):
-                simulator.game.instance = 0
-                simulator.game.conf_line_ups(home, away)
-                simulator.game.instance = 1
+                for _ in range(CANT_SIMULATIONS):
+                    simulator.game.instance = 0
+                    simulator.game.conf_line_ups(home, away)
+                    simulator.game.instance = 1
 
-                simulator.simulate()
+                    simulator.simulate()
 
-                results.append((i, j, simulator.game.home.statistics.goals,
-                                simulator.game.away.statistics.goals))
+                    results.append((i, j, simulator.game.home.statistics.goals,
+                                    simulator.game.away.statistics.goals))
 
-                simulator.reset()
-                simulator.game.reset()
+                    simulator.reset()
+                    simulator.game.reset()
 
         results_by_sim = {}
 
@@ -109,7 +114,8 @@ class LineUpSimulateStrategy(ManagerLineUpStrategy):
             results_by_sim[i if team == HOME else j] = (
                 c+(1 if r > 0 else 0), g + r)
 
-        ind, _ = max(results_by_sim.items(), key=lambda x: x[1][0]*1000+x[1][1])
+        ind, _ = max(results_by_sim.items(),
+                     key=lambda x: x[1][0]*1000+x[1][1])
 
         return home_line_ups[ind] if team == HOME else away_line_ups[ind]
 

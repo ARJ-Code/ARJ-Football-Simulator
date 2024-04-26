@@ -1,9 +1,9 @@
 import pandas as pd
-from typing import Dict, List
+from typing import List
 from football_tools.data import PlayerData
 from football_agent.player_agent import Player
 from football_agent.manager_agent import Manager
-from football_agent.player_strategy import DefensorStrategy, FootballStrategy, MidfielderStrategy, OfensorStrategy, RandomStrategy
+from football_agent.player_strategy import FootballStrategy
 from football_agent.manager_line_up_strategy import LineUpRandomStrategy, LineUpSimulateStrategy
 from football_agent.manager_action_strategy import ActionRandomStrategy, ActionSimulateStrategy
 from football_agent.team import TeamAgent
@@ -33,16 +33,3 @@ def conf_game(home_n: str, away_n: str):
     sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 
     return sim
-
-# def conf_team(team: str, team_data: TeamData, players: List[PlayerData]) -> Dict[int, Player]:
-#     team = {}
-#     for p in players:
-#         player_function = team_data.line_up.get_player_function(p.dorsal)
-#         if player_function == ATTACK:
-#             team[p.dorsal] = Player(p.mentality_vision, p.dorsal, team, OfensorStrategy())
-#         elif player_function == MIDFIELD:
-#             team[p.dorsal] = Player(p.mentality_vision, p.dorsal, team, MidfielderStrategy())
-#         else:
-#             team[p.dorsal] = Player(p.mentality_vision, p.dorsal, team, DefensorStrategy())
-    
-#     return team
