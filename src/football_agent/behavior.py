@@ -103,3 +103,37 @@ class Ofensive(Behavior):
 
         return value * self.importance
 
+class AvoidFatigue(Behavior):
+    def eval(self, action: Action, game: Game) -> double:
+        value = 0
+        if action is Nothing:
+            value = 1
+        else:
+            effort = 0
+            if action is Move:
+                effort = 2
+                if action is Dribble:
+                    effort = 3
+            elif action is Pass:
+                effort = 1
+            elif action is StealBall:
+                effort = 1
+            elif action is Shoot:
+                effort = 2
+            value = 1 / (effort + 1)
+
+        value *= self.importance
+        self.update_importance(action.team, game)
+        return value
+
+    def update_importance(self, team: str, game: Game) -> None:
+        self.importance *= 1.01
+        self_team = game.home if team == HOME else game.away
+        enemy_team = game.away if team == HOME else game.home
+        if self_team.statistics.goals - enemy_team.statistics.goals > 1:
+            self.importance *= 1.1
+        else:  
+            self.importance *= 0.9
+        if game.instance == 80:
+            self.importance *= 0.75
+

@@ -5,12 +5,12 @@ from typing import List, Tuple, Dict
 from random import random, randint
 from football_tools.line_up import LineUp
 
-AWAY = 'A'
-HOME = 'H'
+AWAY = 'AWAY'
+HOME = 'HOME'
 
 
 class Action(ABC):
-    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: int, game: Game) -> None:
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__()
         self.src: Tuple[int, int] = src
         self.dest: Tuple[int, int] = dest
@@ -46,13 +46,15 @@ class Action(ABC):
 
 
 class Nothing(Action):
-    def __init__(self) -> None:
-        super().__init__((0, 0), (0, 0), -1, '', None)
+    def __init__(self, player: int, team: str, game: Game) -> None:
+        super().__init__((0, 0), (0, 0), player, team, game)
 
     def execute(self):
+        self.get_player_data().power_stamina += 1
         return super().execute()
 
     def reset(self):
+        self.get_player_data().power_stamina -= 1
         return super().reset()
 
 
@@ -69,21 +71,6 @@ class Pass(Action):
         self.game.field.move_ball(self.dest, self.src)
 
 
-class MoveWithBall(Action):
-    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
-        super().__init__(src, dest, player, team, game)
-
-    def execute(self):
-        self.get_player_data().power_stamina -= 2
-        self.game.field.move_player(self.src, self.dest)
-        self.game.field.move_ball(self.src, self.dest)
-
-    def reset(self):
-        self.get_player_data().power_stamina += 2
-        self.game.field.move_player(self.dest, self.src)
-        self.game.field.move_ball(self.dest, self.src)
-
-
 class Move(Action):
     def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
         super().__init__(src, dest, player, team, game)
@@ -95,6 +82,23 @@ class Move(Action):
     def reset(self):
         self.get_player_data().power_stamina += 2
         self.game.field.move_player(self.dest, self.src)
+
+
+class MoveWithBall(Move):
+    def __init__(self, src: Tuple[int, int], dest: Tuple[int, int], player: int, team: str, game: Game) -> None:
+        super().__init__(src, dest, player, team, game)
+
+    def execute(self):
+        # self.get_player_data().power_stamina -= 2
+        # self.game.field.move_player(self.src, self.dest)
+        self.game.field.move_ball(self.src, self.dest)
+        return super().execute()
+
+    def reset(self):
+        # self.get_player_data().power_stamina += 2
+        # self.game.field.move_player(self.dest, self.src)
+        self.game.field.move_ball(self.dest, self.src)
+        return super().reset()
 
 
 class Dribble(MoveWithBall):
