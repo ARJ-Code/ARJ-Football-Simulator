@@ -74,16 +74,18 @@ class ActionSimulateStrategy(ManagerActionStrategy):
         results = []
 
         for i, action in enumerate(actions):
-            simulator.dispatch().dispatch_lazy(action)
+            simulator.dispatch().dispatch(action)
+            simulator.simulate_current()
             simulator.simulate()
 
             r = simulator.game.home.statistics.goals-simulator.game.away.statistics.goals
             if team == AWAY:
                 r = -r
+
             results.append((r, i))
-           
+
             simulator.reset()
-            simulator.dispatch().reset()
+            simulator.reset_current()
 
         action, _ = max(results, key=lambda x: x[0])
 

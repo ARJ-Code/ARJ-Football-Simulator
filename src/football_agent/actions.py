@@ -436,7 +436,7 @@ class IncrementPossession(Action):
 
     def reset(self):
         team_data = self.game.home if self.team == HOME else self.game.away
-        team_data.statistics.possession_instances += 1
+        team_data.statistics.possession_instances -= 1
 
 
 class Dispatch:
@@ -558,6 +558,8 @@ class Dispatch:
         return HOME if rnd_h > rnd_a else AWAY
 
     def reset(self):
+        if isinstance(self.stack[-1], CompressAction):
+            self.lazy_stack = self.stack[-1].actions.copy()
         if len(self.lazy_stack) != 0 and self.lazy_stack[-1] == self.stack[-1]:
             self.lazy_stack.pop()
 
