@@ -97,9 +97,6 @@ class LineUpSimulateStrategy(ManagerLineUpStrategy):
                 simulator.reset()
                 simulator.game.reset()
 
-        ind = 0
-        mv = 0
-
         results_by_sim = {}
 
         for i, j, _, _ in results:
@@ -112,10 +109,7 @@ class LineUpSimulateStrategy(ManagerLineUpStrategy):
             results_by_sim[i if team == HOME else j] = (
                 c+(1 if r > 0 else 0), g + r)
 
-        for k, v in results_by_sim.items():
-            if v[0]*1000+v[1] > mv:
-                ind = k
-                mv = v[0]*1000+v[1]
+        ind, _ = max(results_by_sim.items(), key=lambda x: x[1][0]*1000+x[1][1])
 
         return home_line_ups[ind] if team == HOME else away_line_ups[ind]
 

@@ -23,13 +23,24 @@ def possibles_change_player(game: Game, team: str) -> List[Action]:
     for k, v in team_data.line_up.line_up.items():
         if any([p for p in team_data.change_history if p[0] == v.player]) or v.player in team_data.unavailable:
             continue
+
+        q = []
+
         for player in team_data.on_bench:
             if any([p for p in team_data.change_history if p[1] == player]):
                 continue
             for pos in team_data.data[player].player_positions:
                 if pos in k:
-                    possibles.append(ChangePlayer(
-                        v.player, player, team, game))
+                    aux = v.player
+                    v.conf_player(team_data.data[player])
+                    q.append((team_data.data[player].overall, player))
+                    v.conf_player(team_data.data[aux])
+                    break
+
+        if len(q) == 0:
+            continue
+        possibles.append(ChangePlayer(v.player, max(
+            q, key=lambda x: x[0])[1], team, game))
 
     return possibles
 
@@ -71,7 +82,7 @@ class ActionSimulateStrategy(ManagerActionStrategy):
     def action(self, team: str, simulator: SimulatorAgent) -> Action:
         actions = possibles_action(simulator.game, team)
 
-        results = []
+        results = {i: (0, 0) for i, _ in enumerate(actions)}
 
         for i, action in enumerate(actions):
             simulator.dispatch().dispatch(action)
@@ -82,11 +93,16 @@ class ActionSimulateStrategy(ManagerActionStrategy):
             if team == AWAY:
                 r = -r
 
-            results.append((r, i))
+            c, g = results[i]
+
+            if r > 0:
+                c += 1
+
+            results[i] = (c, g+r)
 
             simulator.reset()
             simulator.reset_current()
 
-        action, _ = max(results, key=lambda x: x[0])
+        action, _ = max(results.items(), key=lambda x: x[1][0]*1000+x[1][1])
 
         return actions[action]
