@@ -1,19 +1,26 @@
 from abc import ABC
-from typing import Dict
+from typing import Dict, List
 from .player_data import PlayerData
 
+# strategy
 OFFENSIVE = 'OFFENSIVE'
 DEFENSIVE = 'DEFENSIVE'
 NORMAL = 'NORMAL'
 
+# player function
+DEFENSE = 'DEFENSE'
+MIDFIELD = 'MIDFIELD'
+ATTACK = 'ATTACK'
+
 
 class LineUpGrid:
-    def __init__(self, row: int, col: int, position: str) -> None:
+    def __init__(self, row: int, col: int, position: str, player_function: str) -> None:
         self.row: int = row
         self.col: int = col
         self.player: int = -1
         self.position: str = position
         self.conf: str = NORMAL
+        self.player_function: str = player_function
 
     def conf_player(self, player: PlayerData):
         self._set_statistics(player, player.club_position == self.position)
