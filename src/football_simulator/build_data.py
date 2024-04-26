@@ -27,9 +27,9 @@ def conf_game(home_n: str, away_n: str):
     away_d = TeamData(away_n, away)
 
     home_a = TeamAgent(
-        home_n, Manager(LineUpSimulateStrategy(), ActionSimulateStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', RandomStrategy()) for p in home})
+        home_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', RandomStrategy()) for p in home})
     away_a = TeamAgent(
-        away_n, Manager(LineUpSimulateStrategy(), ActionSimulateStrategy(), 'A'), {p.dorsal: Player(50, p.dorsal, 'A', RandomStrategy()) for p in away})
+        away_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'A'), {p.dorsal: Player(50, p.dorsal, 'A', RandomStrategy()) for p in away})
 
     sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 

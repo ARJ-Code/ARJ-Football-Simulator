@@ -16,6 +16,11 @@ class GridField:
     def is_empty(self) -> bool:
         return self.player == -1
 
+    def str_code(self) -> str:
+        if self.player == - 1:
+            return '**  '
+        return f'{f"0"  if self.player < 10 else ""}{int(self.player)}{"H"if self.team==HOME else"A"}{"B" if self.ball else " "}'
+
     def __str__(self) -> str:
         if self.player == - 1:
             return '\033[32m**  \033[0m'
@@ -123,6 +128,14 @@ class Field:
         for r in range(self.rows):
             for c in range(self.columns):
                 field_str += str(self.grid[r][c])+' '
+            field_str += "\n"
+        return field_str
+
+    def str_code(self) -> str:
+        field_str = ""
+        for r in range(self.rows):
+            for c in range(self.columns):
+                field_str += self.grid[r][c].str_code()+' '
             field_str += "\n"
         return field_str
 
