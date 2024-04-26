@@ -95,6 +95,13 @@ class Field:
                     return grid
         raise Exception(
             f"There is no player with the dorsal {dorsal} of the {team} team on the field")
+    
+    def find_ball(self) -> GridField:
+        for row in self.grid:
+            for grid in row:
+                if grid.ball:
+                    return grid
+        raise Exception("The ball is not on the field")
 
     def neighbor_grids(self, src: GridField, max_distance: double) -> List[GridField]:
         x, y = (src.row, src.col)

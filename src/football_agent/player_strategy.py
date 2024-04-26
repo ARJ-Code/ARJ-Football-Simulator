@@ -28,7 +28,8 @@ class DefensorStrategy(Strategy):
         self.behaviors: List[Behavior] = [Defensive(importance=0.8), 
                                           ReturnToPosition(importance=0.5),
                                           Ofensive(importance=0.2),
-                                          Random(importance=0.2)]
+                                          Random(importance=0.2), 
+                                          AvoidFatigue(importance=0.1)]
 
 class OfensorStrategy(Strategy):
     def __init__(self) -> None:
@@ -36,7 +37,8 @@ class OfensorStrategy(Strategy):
         self.behaviors: List[Behavior] = [Ofensive(importance=0.8), 
                                           ReturnToPosition(importance=0.5),
                                             Defensive(importance=0.2),
-                                          Random(importance=0.2)]
+                                          Random(importance=0.2), 
+                                          AvoidFatigue(importance=0.1)]
 
 class MidfielderStrategy(Strategy):
     def __init__(self) -> None:
@@ -44,4 +46,5 @@ class MidfielderStrategy(Strategy):
         self.behaviors: List[Behavior] = [Ofensive(importance=0.6), 
                                           Defensive(importance=0.6),
                                           ReturnToPosition(importance=0.5),
-                                          Random(importance=0.2)]
+                                          Random(importance=0.2), 
+                                          AvoidFatigue(importance=0.1)]
