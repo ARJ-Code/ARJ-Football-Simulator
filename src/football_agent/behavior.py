@@ -84,7 +84,7 @@ class Ofensive(Behavior):
                     if action is Dribble and any(g.team != action.team for g in game.field.neighbor_grids(dest_grid, 1)):
                         move_value += 1 / 4
             if action is Shoot:
-                value += 1
+                value += 3 / game.field.distance(source, enemy_goal[1])
             if action is Pass:
                 diff_distance = game.field.distance(source, enemy_goal[1]) - game.field.distance(destination, enemy_goal[1])
                 if diff_distance > 0:

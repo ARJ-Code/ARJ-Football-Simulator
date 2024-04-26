@@ -3,10 +3,13 @@ from typing import Dict, List
 from football_agent.behavior import *
 from football_agent.fuzzy_rules import fuzzy_defensive_position, fuzzy_ofensive_position
 from football_tools.data import HOME, StatisticsTeam
-from football_tools.line_up import DEFENSE, MIDFIELD
 from .actions import Action
 from football_tools.game import Game, GridField
 
+DEFENSE = 'DEFENSE'
+MIDFIELD = 'MIDFIELD'
+ATTACK = 'ATTACK'
+GOALKEEPER = 'GOALKEEPER'
 
 class Strategy:
     def __init__(self) -> None:
@@ -14,8 +17,28 @@ class Strategy:
         self.behaviors: List[Behavior] = []
 
     def select_action(self, actions: List[Action], game: Game) -> Action:
-        actions.sort(key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
-        return actions[-1]
+        
+        # actions.sort(key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
+        return max(actions, key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
+    
+class FootballStrategy(Strategy):
+    def __init__(self) -> None:
+        super().__init__()
+        self.defensor = DefensorStrategy()
+        self.ofensor = OfensorStrategy()
+        self.midfield = MidfielderStrategy()
+
+    def select_action(self, actions: List[Action], game: Game) -> Action:
+        player = actions[0].player
+        team = actions[0].team
+        player_function = game.home.line_up.get_player_function(player) if team == 'H' else game.away.line_up.get_player_function(player)
+        if player_function == ATTACK:
+            return self.ofensor.select_action(actions, game)
+        elif player_function == MIDFIELD:
+            return self.midfield.select_action(actions, game)
+        else:
+            return self.defensor.select_action(actions, game)
+
 
 class RandomStrategy(Strategy):
     def __init__(self) -> None:
@@ -37,7 +60,7 @@ class DefensorStrategy(Strategy):
 class OfensorStrategy(Strategy):
     def __init__(self) -> None:
         super().__init__()
-        self.behaviors: List[Behavior] = [Ofensive(importance=0.8), 
+        self.behaviors: List[Behavior] = [Ofensive(importance=1.8), 
                                           ReturnToPosition(importance=0.5),
                                             Defensive(importance=0.2),
                                           Random(importance=0.2), 
