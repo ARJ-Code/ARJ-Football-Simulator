@@ -59,6 +59,10 @@ class LineUp(ABC):
                 return v
 
         return None
+    
+    def get_player_function(self, player: int) -> str:
+        line_up_position = self.get_player_position(player)
+        return line_up_position.player_function
 
 
 class Home433(LineUp):
