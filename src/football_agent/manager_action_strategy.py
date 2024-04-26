@@ -64,7 +64,7 @@ def possibles_action(game: Game, team: str) -> List[Action]:
     line_up_options = [ChangeLineUp(team, game, l)
                        for l in possibles_line_up(line_up_players, team)]
 
-    return change_options+line_up_options+[Nothing()]
+    return change_options+line_up_options+[ManagerNothing()]
 
 
 class ManagerActionStrategy(ABC):
