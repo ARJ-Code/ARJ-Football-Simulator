@@ -442,6 +442,16 @@ class IncrementPossession(Action):
         team_data = self.game.home if self.team == HOME else self.game.away
         team_data.statistics.possession_instances -= 1
 
+class ManagerNothing(Action):
+    def __init__(self) -> None:
+        super().__init__((0, 0), (0, 0), -1, '', None)
+
+    def execute(self):
+        return super().execute()
+
+    def reset(self):
+        return super().reset()
+
 
 class Dispatch:
     def __init__(self) -> None:
