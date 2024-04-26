@@ -5,8 +5,8 @@ from typing import List, Tuple, Dict
 from random import random, randint
 from football_tools.line_up import LineUp
 
-AWAY = 'AWAY'
-HOME = 'HOME'
+AWAY = 'A'
+HOME = 'H'
 
 
 class Action(ABC):
@@ -89,14 +89,10 @@ class MoveWithBall(Move):
         super().__init__(src, dest, player, team, game)
 
     def execute(self):
-        # self.get_player_data().power_stamina -= 2
-        # self.game.field.move_player(self.src, self.dest)
         self.game.field.move_ball(self.src, self.dest)
         return super().execute()
 
     def reset(self):
-        # self.get_player_data().power_stamina += 2
-        # self.game.field.move_player(self.dest, self.src)
         self.game.field.move_ball(self.dest, self.src)
         return super().reset()
 

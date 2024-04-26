@@ -33,17 +33,17 @@ class LineUpGrid:
 
     def _set_statistics(self, player_data: PlayerData, in_position: bool) -> None:
         if not in_position:
-            player_data.defending -= 5
-            player_data.dribbling -= 5
-            player_data.mentality_interceptions -= 5
-            player_data.mentality_vision -= 5
-            player_data.movement_reactions -= 5
-            player_data.skill_ball_control -= 5
-            player_data.passing -= 5
-            player_data.pace -= 5
-            player_data.skill_ball_control -= 5
-            player_data.shooting -= 5
-            player_data.overall -= 5
+            player_data.defending = player_data.o_defending - 5
+            player_data.dribbling = player_data.o_dribbling - 5
+            player_data.mentality_interceptions = player_data.o_mentality_interceptions - 5
+            player_data.mentality_vision = player_data.o_mentality_vision - 5
+            player_data.movement_reactions = player_data.o_movement_reactions - 5
+            player_data.skill_ball_control = player_data.o_skill_ball_control - 5
+            player_data.passing = player_data.o_passing - 5
+            player_data.pace = player_data.o_pace - 5
+            player_data.skill_ball_control = player_data.o_skill_ball_control - 5
+            player_data.shooting = player_data.o_shooting - 5
+            player_data.overall = player_data.o_overall - 5
 
 
 class LineUp(ABC):
