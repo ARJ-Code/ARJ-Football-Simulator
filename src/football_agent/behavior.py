@@ -2,7 +2,7 @@ from numpy import double, random
 from football_tools.game import Game, GridField
 from .actions import Action, Dribble, Move, Nothing, Pass, Shoot, StealBall
 
-HOME = 'HOME'
+HOME = 'H'
 
 class Behavior:
     def __init__(self, importance: double = 1) -> None:
