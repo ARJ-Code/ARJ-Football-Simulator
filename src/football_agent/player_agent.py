@@ -63,7 +63,7 @@ class Player:
     def construct_actions(self, game: Game, visible_grids: List[GridField], p_grid: GridField) -> List[Action]:
         actions: List[Action] = []
 
-        actions.append(Nothing())
+        actions.append(Nothing(self.dorsal, self.team, game))
 
         if self.get_data(game).power_stamina <= 0:
             return actions

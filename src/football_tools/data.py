@@ -35,7 +35,7 @@ class StatisticsTeam:
 class TeamData:
     def __init__(self, name: str, data: List[PlayerData]) -> None:
         self.name = name
-        self.line_up: LineUp | None = None
+        self.line_up: LineUp = None
         self.data: Dict[int, PlayerData] = {}
         self.statistics: StatisticsTeam = StatisticsTeam(name)
         self.players_statistics: Dict[int, StatisticsPLayer] = {}
