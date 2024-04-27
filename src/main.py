@@ -8,14 +8,22 @@ import pandas as pd
 
 df = pd.read_csv('data/players_22.csv')
 
-# params = conf_game_llm(input(
-#     'Describe tu simulación, especifica liga, equipo local y equipo visitante:\n'), df)
+params = conf_game_llm(input(
+    """
+Describe tu simulación, especifica: 
+* liga
+* equipo local
+* equipo visitante
+* estrategia del manager local para elegir la alineación
+* estrategia del manager visitante para elegir la alineación
 
-# if params is None:
-#     print('No se pudo inferir los parámetros de la simulación')
-#     exit()
+"""), df)
 
-params = SimulationParams('FC Barcelona', 'Real Madrid CF')
+if params is None:
+    print('No se pudo inferir los parámetros de la simulación')
+    exit()
+
+# params = SimulationParams('FC Barcelona', 'Real Madrid CF')
 
 sim = conf_game(params, df)
 
@@ -31,4 +39,3 @@ for s in sim.simulate():
     time.sleep(0.5)
     clear_console()
     print(s)
-

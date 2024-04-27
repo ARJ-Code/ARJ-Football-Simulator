@@ -18,7 +18,8 @@ def get_data(team: str, df: DataFrame) -> List[PlayerData]:
 
 
 def conf_game(params: SimulationParams, df: DataFrame) -> FootballSimulation:
-    home_n, away_n = params.home, params.away
+    home_n, away_n = params.names
+    home_line_up, away_line_up = params.managers_line_up
     home = get_data(home_n, df)
     away = get_data(away_n, df)
 
@@ -26,9 +27,9 @@ def conf_game(params: SimulationParams, df: DataFrame) -> FootballSimulation:
     away_d = TeamData(away_n, away)
 
     home_a = TeamAgent(
-        home_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', FootballStrategy()) for p in home})
+        home_n, Manager(home_line_up, ActionRandomStrategy(), 'H'), {p.dorsal: Player(50, p.dorsal, 'H', FootballStrategy()) for p in home})
     away_a = TeamAgent(
-        away_n, Manager(LineUpRandomStrategy(), ActionRandomStrategy(), 'A'), {p.dorsal: Player(50, p.dorsal, 'A', FootballStrategy()) for p in away})
+        away_n, Manager(away_line_up, ActionRandomStrategy(), 'A'), {p.dorsal: Player(50, p.dorsal, 'A', FootballStrategy()) for p in away})
 
     sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 

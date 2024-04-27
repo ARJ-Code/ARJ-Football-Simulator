@@ -130,7 +130,7 @@ class Simulator:
         if isinstance(manager.action_strategy, ActionMiniMaxStrategy):
             return SimulatorActionMiniMaxManager(self, team, mask)
 
-        return SimulatorRandomManager(self.game)
+        return SimulatorRandom(self.game)
 
     def simulate_managers(self, mask: Set[Tuple[int, str]], heuristic_manager: bool):
 
@@ -185,7 +185,7 @@ class Simulator:
         self.stack.pop()
 
 
-class SimulatorRandomManager(SimulatorAgent):
+class SimulatorRandom(SimulatorAgent):
     def simulate(self):
         pass
 
