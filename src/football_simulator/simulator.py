@@ -253,6 +253,34 @@ class SimulatorActionSimulateManager(SimulatorAgent):
 
     def dispatch(self) -> Dispatch:
         return self.simulator.dispatch
+    
+class SimulatorActionSimulatePlayer(SimulatorAgent):
+    def __init__(self, simulator: Simulator, team: str, mask: Set[Tuple[int, str]]):
+        super().__init__(simulator.game)
+        self.team: str = team
+        self.simulator: Simulator = simulator
+        self.instance: int = simulator.game.instance
+        self.stack_len: int = len(simulator.dispatch.stack)
+        self.mask: Set[Tuple[int, str]] = mask
+
+    def simulate(self, player: int):
+        while not self.simulator.game.is_finish():
+            self.simulator.simulate_instance(set([(player, self.team)]), heuristic_manager=True)
+
+    def reset(self):
+        while self.simulator.game.instance != self.instance + 1:
+            self.simulator.reset_instance()
+
+    def simulate_current(self):
+        self.simulator.simulate_instance(
+            self.mask.copy(), heuristic_manager=True)
+
+    def reset_current(self):
+        while len(self.simulator.dispatch.stack) != self.stack_len:
+            self.simulator.dispatch.reset()
+
+    def dispatch(self) -> Dispatch:
+        return self.simulator.dispatch
 
 
 class SimulatorActionMiniMaxManager(SimulatorActionSimulateManager):

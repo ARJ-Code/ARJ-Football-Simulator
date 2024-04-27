@@ -1,11 +1,13 @@
-from typing import Dict, List
+from abc import ABC, abstractmethod
+from typing import Dict, List, Tuple
 
 from football_agent.behavior import *
 from football_agent.fuzzy_rules import fuzzy_defensive_position, fuzzy_ofensive_position
+from football_simulator.simulator import SimulatorActionSimulatePlayer
 from football_tools.data import StatisticsTeam
 from .actions import Action
 from football_tools.game import Game, GridField
-from football_tools.enum import HOME
+from football_tools.enum import HOME, AWAY
 
 DEFENSE = 'DEFENSE'
 MIDFIELD = 'MIDFIELD'
@@ -13,18 +15,25 @@ ATTACK = 'ATTACK'
 GOALKEEPER = 'GOALKEEPER'
 
 
-class PlayeryStrategy:
+class PlayerStrategy(ABC):
     def __init__(self) -> None:
         self.strategy = self.select_action
+        
+
+    @abstractmethod
+    def select_action(self, actions: List[Action], game: Game) -> Action:
+        pass
+        # return max(actions, key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
+    
+class BehaviorStrategy(PlayerStrategy):
+    def __init__(self) -> None:
+        super().__init__()
         self.behaviors: List[Behavior] = []
 
     def select_action(self, actions: List[Action], game: Game) -> Action:
-
-        # actions.sort(key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
         return max(actions, key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
 
-
-class FootballStrategy(PlayeryStrategy):
+class FootballStrategy(PlayerStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.defensor = DefensorStrategy()
@@ -44,16 +53,13 @@ class FootballStrategy(PlayeryStrategy):
             return self.defensor.select_action(actions, game)
 
 
-class RandomStrategy(PlayeryStrategy):
+class RandomStrategy(BehaviorStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Random()]
 
-    # def select_action(self, actions: List[Action], game: Game) -> Action:
-    #     return choice(actions)
 
-
-class DefensorStrategy(PlayeryStrategy):
+class DefensorStrategy(BehaviorStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Defensive(importance=0.8),
@@ -63,7 +69,7 @@ class DefensorStrategy(PlayeryStrategy):
                                           AvoidFatigue(importance=0.1)]
 
 
-class OfensorStrategy(PlayeryStrategy):
+class OfensorStrategy(BehaviorStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Ofensive(importance=1.8),
@@ -73,7 +79,7 @@ class OfensorStrategy(PlayeryStrategy):
                                           AvoidFatigue(importance=0.1)]
 
 
-class MidfielderStrategy(PlayeryStrategy):
+class MidfielderStrategy(BehaviorStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Ofensive(importance=0.6),
@@ -83,12 +89,98 @@ class MidfielderStrategy(PlayeryStrategy):
                                           AvoidFatigue(importance=0.1),
                                           Random(importance=0.2)]
         
-class MinimaxStrategy(PlayeryStrategy):
-    pass
+MIN = -10000000000
+MAX = 10000000000
+
+CANT_SIMULATIONS = 1
+        
+class MinimaxStrategy(PlayerStrategy):
+    def __init__(self) -> None:
+        super().__init__()
+        self.evaluator = GameEvaluator()
+
+    def select_action(self, actions: List[Action], simulator: SimulatorActionSimulatePlayer) -> Action:
+        team = actions[0].team
+        player = actions[0].player
+        print(f'{"HOME" if team == HOME else "AWAY"}-{player} player is thinking')
+
+        depth = 2
+
+        simulator.simulate_current()
+        action = self.home_function(simulator, depth, MIN, MAX)[1] if team == HOME else self.away_function(
+            simulator, depth, MIN, MAX)[1]
+        simulator.reset_current()
+
+        return action
+
+    def home_function(self, actions: List[Action], simulator: SimulatorActionSimulatePlayer, 
+                      depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
+
+        if depth == 0 or simulator.game.is_finish():
+            return self.evaluation(simulator.game, HOME)
+    
+        best = MIN
+        best_action = 0
+
+        player = actions[0].player
+        simulator.simulate(player)
+
+        for i, action in enumerate(actions):
+            simulator.dispatch().dispatch(action)
+
+            r, _ = self.away_function(simulator, depth-1, alpha, beta)
+
+            if r > best:
+                best = r
+                best_action = i
+
+            simulator.dispatch().reset()
+
+            if best > beta:
+                return best, best_action
+            
+        simulator.reset()
+
+        return best, actions[best_action]
+
+    def away_function(self, actions: List[Action],simulator: SimulatorActionSimulatePlayer, 
+                      depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
+        if depth == 0 or simulator.game.is_finish():
+            return self.evaluation(simulator.game, AWAY)
+
+        best = MAX
+        best_action = 0
+
+        player = actions[0].player
+        simulator.simulate(player)
+
+        for i, action in enumerate(actions):
+            for _ in range(CANT_SIMULATIONS):
+                simulator.dispatch().dispatch(action)
+                simulator.simulate()
+
+                r, _ = self.home_function(simulator, depth-1, alpha, beta)
+
+                if r < best:
+                    best = r
+                    best_action = i
+
+                simulator.reset()
+                simulator.dispatch().reset()
+
+                if best < alpha:
+                    return best, best_action
+                
+        simulator.reset()
+
+        return best, actions[best_action]
+
+    def evaluation(self, game: Game, team: str) -> Tuple[int, Action | None]:
+        return self.evaluator.eval(game, team), None
 
 
 class GameEvaluator:
-    def eval(self, game: Game, team: str):
+    def eval(self, game: Game, team: str) -> float:
         ball_position = self.ball_position(game)
         value = (
             (1 if ball_position.team == team else 0) * 0.2 +

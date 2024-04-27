@@ -1,11 +1,11 @@
 from .actions import *
 from football_tools.game import *
 from typing import List, Tuple, Generator
-from .player_strategy import Strategy
+from .player_strategy import FootballStrategy, PlayerStrategy, Strategy
 
 
 class Player:
-    def __init__(self,  vision: int, dorsal: int, team: str, strategy: Strategy) -> None:
+    def __init__(self,  vision: int, dorsal: int, team: str, strategy: PlayerStrategy) -> None:
         self.strategy = strategy
         self.vision: int = vision / 10
         self.dorsal = dorsal
@@ -22,6 +22,16 @@ class Player:
         action = self.select_action(actions, game)
 
         return action
+    
+    def play_heuristic(self, game: Game):
+        visible_grids, p_grid = self.get_perceptions(game)
+
+        actions = self.construct_actions(game, visible_grids, p_grid)
+
+        action = FootballStrategy().select_action(actions, game)
+
+        return action
+
 
     def get_data(self, game: Game) -> PlayerData:
         if self.team == HOME:
