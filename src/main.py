@@ -23,6 +23,8 @@ if params is None:
     print('No se pudo inferir los parámetros de la simulación')
     exit()
 
+
+print('Simulación configurada correctamente')
 # params = SimulationParams('FC Barcelona', 'Real Madrid CF')
 
 sim = conf_game(params, df)

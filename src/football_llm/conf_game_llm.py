@@ -2,6 +2,8 @@ from .llm import query
 from pandas import DataFrame
 from typing import Tuple
 from football_agent.manager_line_up_strategy import ManagerLineUpStrategy, LineUpRandomStrategy, LineUpSimulateStrategy
+from football_agent.manager_action_strategy import ManagerActionStrategy, ActionRandomStrategy, ActionSimulateStrategy, ActionMiniMaxStrategy
+
 from football_simulator.simulation_params import SimulationParams
 
 
@@ -10,7 +12,8 @@ def conf_game_llm(user_prompt: str, df: DataFrame) -> SimulationParams | None:
         league = league_prompt(user_prompt, df)
         names = teams_prompt(user_prompt, league, df)
         managers_line_up = managers_line_up_prompt(user_prompt)
-        return SimulationParams(names, managers_line_up)
+        managers_action = managers_action_prompt(user_prompt)
+        return SimulationParams(names, managers_line_up, managers_action)
     except:
         return None
 
@@ -61,7 +64,7 @@ def managers_line_up_prompt(user_prompt: str) -> Tuple[ManagerLineUpStrategy, Ma
 Tengo la siguiente lista de estrategias de escoger alineación para el manager de mi simulación de fútbol y esta query 
 definida por el usuario, del texto introducido por el usuario dime que estrategia de escoger alineación es la que desea
 el manager local y cual es la que desea el visitador, con el siguiente formato: random vs simulate la de la izquierda
-es la estrategia del manager local y la de la derecha es la estrategia del manager visitador.
+es la estrategia del manager local y la de la derecha es la estrategia del manager visitador
 """
 
     strategies = {'random': LineUpRandomStrategy(
@@ -75,5 +78,27 @@ es la estrategia del manager local y la de la derecha es la estrategia del manag
 
         return strategies[home], strategies[away]
     except:
-        print(response)
-        raise Exception()
+        return LineUpRandomStrategy(), LineUpRandomStrategy()
+
+
+def managers_action_prompt(user_prompt: str) -> Tuple[ManagerActionStrategy, ManagerActionStrategy]:
+    prompt =\
+        """
+Tengo la siguiente lista de estrategias de escoger las acciones durante el partido para el manager de mi simulación de fútbol 
+y esta query definida por el usuario, del texto introducido por el usuario dime que estrategia de escoger alineación 
+es la que desea el manager local y cual es la que desea el visitador, con el siguiente formato: random vs simulate la 
+de la izquierda es la estrategia del manager local y la de la derecha es la estrategia del manager visitador
+"""
+
+    strategies = {'random': ActionSimulateStrategy(
+    ), 'simulate': ActionSimulateStrategy(), 'minimax': ActionMiniMaxStrategy()}
+
+    response = query(prompt+'\n'+'\n'.join(strategies.keys())+'\n'+user_prompt)
+
+    try:
+        home = response.split(' vs ')[0]
+        away = response.split(' vs ')[1]
+
+        return strategies[home], strategies[away]
+    except:
+        return ActionRandomStrategy(), ActionRandomStrategy()
