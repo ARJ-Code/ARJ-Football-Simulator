@@ -1,17 +1,21 @@
-import os
 from football_simulator.build_data import conf_game
-import time
+from football_simulator.simulation_params import SimulationParams
 from football_llm.conf_game_llm import conf_game_llm
+
+import os
+import time
 import pandas as pd
 
 df = pd.read_csv('data/players_22.csv')
 
-params = conf_game_llm(input(
-    'Describe tu simulación, especifica liga, equipo local y equipo visitante:\n'), df)
+# params = conf_game_llm(input(
+#     'Describe tu simulación, especifica liga, equipo local y equipo visitante:\n'), df)
 
-if params is None:
-    print('No se pudo inferir los parámetros de la simulación')
-    exit()
+# if params is None:
+#     print('No se pudo inferir los parámetros de la simulación')
+#     exit()
+
+params = SimulationParams('FC Barcelona', 'Real Madrid CF')
 
 sim = conf_game(params, df)
 

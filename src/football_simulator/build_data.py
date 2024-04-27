@@ -5,7 +5,7 @@ from football_agent.player_agent import Player
 from football_agent.manager_agent import Manager
 from football_agent.player_strategy import FootballStrategy
 from football_agent.manager_line_up_strategy import LineUpRandomStrategy, LineUpSimulateStrategy
-from football_agent.manager_action_strategy import ActionRandomStrategy, ActionSimulateStrategy
+from football_agent.manager_action_strategy import ActionRandomStrategy, ActionSimulateStrategy, ActionMiniMaxStrategy
 from football_agent.team import TeamAgent
 from football_tools.data import TeamData
 from football_simulator.simulator import FootballSimulation
