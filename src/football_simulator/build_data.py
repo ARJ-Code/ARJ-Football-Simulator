@@ -27,9 +27,9 @@ def conf_game(params: SimulationParams, df: DataFrame) -> FootballSimulation:
     away_d = TeamData(away_n, away)
 
     home_a = TeamAgent(
-        home_n, Manager(home_line_up, home_action, HOME), {p.dorsal: Player(50, p.dorsal, HOME, FootballStrategy()) for p in home})
+        home_n, Manager(home_line_up, home_action, HOME), {p.dorsal: Player(p.mentality_vision, p.dorsal, HOME, FootballStrategy()) for p in home})
     away_a = TeamAgent(
-        away_n, Manager(away_line_up, away_action, AWAY), {p.dorsal: Player(50, p.dorsal, AWAY, FootballStrategy()) for p in away})
+        away_n, Manager(away_line_up, away_action, AWAY), {p.dorsal: Player(p.mentality_vision, p.dorsal, AWAY, FootballStrategy()) for p in away})
 
     sim = FootballSimulation((home_a, home_d), (away_a, away_d))
 

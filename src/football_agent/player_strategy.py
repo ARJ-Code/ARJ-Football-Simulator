@@ -13,7 +13,7 @@ ATTACK = 'ATTACK'
 GOALKEEPER = 'GOALKEEPER'
 
 
-class Strategy:
+class PlayeryStrategy:
     def __init__(self) -> None:
         self.strategy = self.select_action
         self.behaviors: List[Behavior] = []
@@ -24,7 +24,7 @@ class Strategy:
         return max(actions, key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
 
 
-class FootballStrategy(Strategy):
+class FootballStrategy(PlayeryStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.defensor = DefensorStrategy()
@@ -44,7 +44,7 @@ class FootballStrategy(Strategy):
             return self.defensor.select_action(actions, game)
 
 
-class RandomStrategy(Strategy):
+class RandomStrategy(PlayeryStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Random()]
@@ -53,7 +53,7 @@ class RandomStrategy(Strategy):
     #     return choice(actions)
 
 
-class DefensorStrategy(Strategy):
+class DefensorStrategy(PlayeryStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Defensive(importance=0.8),
@@ -63,7 +63,7 @@ class DefensorStrategy(Strategy):
                                           AvoidFatigue(importance=0.1)]
 
 
-class OfensorStrategy(Strategy):
+class OfensorStrategy(PlayeryStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Ofensive(importance=1.8),
@@ -73,7 +73,7 @@ class OfensorStrategy(Strategy):
                                           AvoidFatigue(importance=0.1)]
 
 
-class MidfielderStrategy(Strategy):
+class MidfielderStrategy(PlayeryStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.behaviors: List[Behavior] = [Ofensive(importance=0.6),
@@ -82,6 +82,9 @@ class MidfielderStrategy(Strategy):
                                           Random(importance=0.2),
                                           AvoidFatigue(importance=0.1),
                                           Random(importance=0.2)]
+        
+class MinimaxStrategy(PlayeryStrategy):
+    pass
 
 
 class GameEvaluator:
