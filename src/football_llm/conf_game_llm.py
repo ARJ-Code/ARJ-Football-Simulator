@@ -14,7 +14,8 @@ def conf_game_llm(user_prompt: str, df: DataFrame) -> SimulationParams | None:
         names = teams_prompt(user_prompt, league, df)
         managers_line_up = managers_line_up_prompt(user_prompt)
         managers_action = managers_action_prompt(user_prompt)
-        return SimulationParams(names, managers_line_up, managers_action)
+        players_action = players_action_prompt(user_prompt)
+        return SimulationParams(names, managers_line_up, managers_action, players_action)
     except:
         return None
 

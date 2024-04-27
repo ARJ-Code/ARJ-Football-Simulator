@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple
 
 from football_agent.behavior import *
 from football_agent.fuzzy_rules import fuzzy_defensive_position, fuzzy_ofensive_position
-from football_simulator.simulator import SimulatorActionSimulatePlayer
+from football_agent.simulator_agent import SimulatorAgent
 from football_tools.data import StatisticsTeam
 from .actions import Action
 from football_tools.game import Game, GridField
@@ -99,7 +99,7 @@ class MinimaxStrategy(PlayerStrategy):
         super().__init__()
         self.evaluator = GameEvaluator()
 
-    def select_action(self, actions: List[Action], simulator: SimulatorActionSimulatePlayer) -> Action:
+    def select_action(self, actions: List[Action], simulator: SimulatorAgent) -> Action:
         team = actions[0].team
         player = actions[0].player
         print(f'{"HOME" if team == HOME else "AWAY"}-{player} player is thinking')
@@ -113,7 +113,7 @@ class MinimaxStrategy(PlayerStrategy):
 
         return action
 
-    def home_function(self, actions: List[Action], simulator: SimulatorActionSimulatePlayer, 
+    def home_function(self, actions: List[Action], simulator: SimulatorAgent, 
                       depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
 
         if depth == 0 or simulator.game.is_finish():
@@ -143,7 +143,7 @@ class MinimaxStrategy(PlayerStrategy):
 
         return best, actions[best_action]
 
-    def away_function(self, actions: List[Action],simulator: SimulatorActionSimulatePlayer, 
+    def away_function(self, actions: List[Action],simulator: SimulatorAgent, 
                       depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
         if depth == 0 or simulator.game.is_finish():
             return self.evaluation(simulator.game, AWAY)

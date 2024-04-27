@@ -1,7 +1,7 @@
 from .actions import *
 from football_tools.game import *
 from typing import List, Tuple, Generator
-from .player_strategy import FootballStrategy, PlayerStrategy, Strategy
+from .player_strategy import FootballStrategy, PlayerStrategy
 
 
 class Player:

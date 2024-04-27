@@ -101,12 +101,14 @@ class Simulator:
         self.game.conf_line_ups(home_line_up, away_line_up)
         self.game.instance = 1
 
-    def simulate_players(self, team: str, player_with_ball: int, mask: Set[Tuple[int, str]]):
+    def simulate_players(self, team: str, player_with_ball: int, mask: Set[Tuple[int, str]], heuristic_player: bool):
         if team == HOME and not (player_with_ball, team) in mask:
             self.dispatch.dispatch(
+                self.home.players[player_with_ball].play_heuristic(self.game) if heuristic_player else
                 self.home.players[player_with_ball].play(self.game))
         if team == AWAY and not (player_with_ball, team) in mask:
             self.dispatch.dispatch(
+                self.away.players[player_with_ball].play_heuristic(self.game) if heuristic_player else
                 self.away.players[player_with_ball].play(self.game))
 
         mask.add((player_with_ball, team))
@@ -149,7 +151,7 @@ class Simulator:
                 self.dispatch.dispatch(self.away.manager.heuristic_action(sim) if heuristic_manager else
                                        self.away.manager.action(sim))
 
-    def simulate_instance(self, mask: Set[Tuple[int, str]], heuristic_manager: bool = False):
+    def simulate_instance(self, mask: Set[Tuple[int, str]], heuristic_manager: bool = False, heuristic_player: bool = False):
         self.stack.append(len(self.dispatch.stack))
 
         if self.game.is_middle():
@@ -164,7 +166,7 @@ class Simulator:
                     player_with_ball = n.player
                     team = n.team
 
-        self.simulate_players(team, player_with_ball, mask)
+        self.simulate_players(team, player_with_ball, mask, heuristic_player)
         self.simulate_managers(mask, heuristic_manager)
 
         if team == HOME:
@@ -211,7 +213,7 @@ class SimulatorLineUpManager(SimulatorAgent):
 
     def simulate(self):
         while not self.game.is_finish():
-            self.simulator.simulate_instance(set([]), heuristic_manager=True)
+            self.simulator.simulate_instance(set([]), heuristic_manager=True, heuristic_player=True)
 
     def reset(self):
         self.simulator.reset_all()
@@ -237,7 +239,7 @@ class SimulatorActionSimulateManager(SimulatorAgent):
 
     def simulate(self):
         while not self.simulator.game.is_finish():
-            self.simulator.simulate_instance(set([]), heuristic_manager=True)
+            self.simulator.simulate_instance(set([]), heuristic_manager=True, heuristic_player=True)
 
     def reset(self):
         while self.simulator.game.instance != self.instance+1:
@@ -245,7 +247,7 @@ class SimulatorActionSimulateManager(SimulatorAgent):
 
     def simulate_current(self):
         self.simulator.simulate_instance(
-            self.mask.copy(), heuristic_manager=True)
+            self.mask.copy(), heuristic_manager=True, heuristic_player=True)
 
     def reset_current(self):
         while len(self.simulator.dispatch.stack) != self.stack_len:
@@ -265,7 +267,7 @@ class SimulatorActionSimulatePlayer(SimulatorAgent):
 
     def simulate(self, player: int):
         while not self.simulator.game.is_finish():
-            self.simulator.simulate_instance(set([(player, self.team)]), heuristic_manager=True)
+            self.simulator.simulate_instance(set([(player, self.team)]), heuristic_manager=True, heuristic_player=True)
 
     def reset(self):
         while self.simulator.game.instance != self.instance + 1:
@@ -273,7 +275,7 @@ class SimulatorActionSimulatePlayer(SimulatorAgent):
 
     def simulate_current(self):
         self.simulator.simulate_instance(
-            self.mask.copy(), heuristic_manager=True)
+            self.mask.copy(), heuristic_manager=True, heuristic_player=True)
 
     def reset_current(self):
         while len(self.simulator.dispatch.stack) != self.stack_len:
