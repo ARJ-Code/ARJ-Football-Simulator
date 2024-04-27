@@ -1,12 +1,19 @@
 import os
 from football_simulator.build_data import conf_game
 import time
+from football_llm.conf_game_llm import conf_game_llm
+import pandas as pd
 
+df = pd.read_csv('data/players_22.csv')
 
-home_n = 'FC Barcelona'
-away_n = 'Real Madrid CF'
+params = conf_game_llm(input(
+    'Describe tu simulación, especifica liga, equipo local y equipo visitante:\n'), df)
 
-sim = conf_game(home_n, away_n)
+if params is None:
+    print('No se pudo inferir los parámetros de la simulación')
+    exit()
+
+sim = conf_game(params, df)
 
 
 def clear_console():
@@ -16,15 +23,8 @@ def clear_console():
         os.system("cls")
 
 
-a = time.time()
 for s in sim.simulate():
-    # time.sleep(0.5)
+    time.sleep(0.5)
     clear_console()
 
     print(s)
-
-print(abs(a-time.time()))
-
-# from football_llm.llm import query
-
-# print(query('hola'))

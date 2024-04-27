@@ -1,4 +1,4 @@
-import pandas as pd
+from pandas import DataFrame
 from typing import Dict, List
 from football_tools.data import PlayerData
 from football_agent.player_agent import Player
@@ -9,23 +9,23 @@ from football_agent.manager_action_strategy import ActionRandomStrategy, ActionS
 from football_agent.team import TeamAgent
 from football_tools.data import TeamData
 from football_simulator.simulator import FootballSimulation
+from .simulation_params import SimulationParams
 
 DEFENSE = 'DEFENSE'
 MIDFIELD = 'MIDFIELD'
 ATTACK = 'ATTACK'
 GOALKEEPER = 'GOALKEEPER'
 
-df = pd.read_csv('data/players_22.csv')
 
-
-def get_data(team: str) -> List[PlayerData]:
+def get_data(team: str, df: DataFrame) -> List[PlayerData]:
     data = df[df['club_name'] == team]
     return [PlayerData(p) for _, p in data.iterrows()]
 
 
-def conf_game(home_n: str, away_n: str):
-    home = get_data(home_n)
-    away = get_data(away_n)
+def conf_game(params: SimulationParams, df: DataFrame) -> FootballSimulation:
+    home_n, away_n = params.home, params.away
+    home = get_data(home_n, df)
+    away = get_data(away_n, df)
 
     home_d = TeamData(home_n, home)
     away_d = TeamData(away_n, away)
