@@ -2,9 +2,6 @@ from .player_data import PlayerData
 from .line_up import LineUp
 from typing import List, Dict, Set, Tuple
 
-AWAY = 'A'
-HOME = 'H'
-
 
 class StatisticsPLayer:
     def __init__(self):

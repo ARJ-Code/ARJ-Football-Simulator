@@ -1,9 +1,13 @@
 from football_agent.actions import Dispatch, MiddleTime, IncrementInstance, IncrementPossession
 from football_tools.game import Game
 from football_tools.data import TeamData
-from football_agent.team import HOME, AWAY, TeamAgent
-from typing import Generator, Tuple, Set
+from football_agent.team import TeamAgent
+from typing import Generator, Tuple, Set, List
 from football_agent.simulator_agent import SimulatorAgent
+from football_agent.manager_agent import Manager
+from football_agent.manager_action_strategy import ActionSimulateStrategy, ActionMiniMaxStrategy
+from football_tools.enum import HOME, AWAY
+
 import math
 
 CANT_INSTANCES = 180
@@ -83,6 +87,7 @@ class Simulator:
         self.home: TeamAgent = home
         self.away: TeamAgent = away
         self.game: Game = game
+        self.stack: List[int] = []
         self.dispatch = Dispatch()
 
     def start_instance(self):
@@ -121,22 +126,32 @@ class Simulator:
                         self.dispatch.dispatch(
                             self.away.players[n.player].play(self.game))
 
+    def get_simulator(self, manager: Manager, team: str, mask: Set[Tuple[int, str]]):
+        if isinstance(manager.action_strategy, ActionSimulateStrategy):
+            return SimulatorActionSimulateManager(self, team, mask)
+        if isinstance(manager.action_strategy, ActionMiniMaxStrategy):
+            return SimulatorActionMiniMaxManager(self, team, mask)
+
+        return SimulatorRandom(self.game)
+
     def simulate_managers(self, mask: Set[Tuple[int, str]], heuristic_manager: bool):
 
         if self.game.instance % INTERVAL_MANGER == 0:
             if not (100, HOME) in mask:
                 mask.add((100, HOME))
-                sim = SimulatorActionManager(self, HOME, mask)
+                sim = self.get_simulator(self.home.manager, HOME, mask)
                 self.dispatch.dispatch(self.home.manager.heuristic_action(sim) if heuristic_manager else
                                        self.home.manager.action(sim))
 
             if not (100, AWAY) in mask:
                 mask.add((100, AWAY))
-                sim = SimulatorActionManager(self, AWAY, mask)
+                sim = self.get_simulator(self.away.manager, AWAY, mask)
                 self.dispatch.dispatch(self.away.manager.heuristic_action(sim) if heuristic_manager else
                                        self.away.manager.action(sim))
 
     def simulate_instance(self, mask: Set[Tuple[int, str]], heuristic_manager: bool = False):
+        self.stack.append(len(self.dispatch.stack))
+
         if self.game.is_middle():
             self.dispatch.dispatch(MiddleTime(self.game, HOME))
 
@@ -166,8 +181,27 @@ class Simulator:
     def reset_instance(self):
         self.dispatch.reset()
 
-        while len(self.dispatch.stack) != 0 and not isinstance(self.dispatch.stack[-1], IncrementInstance):
+        while len(self.dispatch.stack) != self.stack[-1]:
             self.dispatch.reset()
+
+        self.stack.pop()
+
+
+class SimulatorRandom(SimulatorAgent):
+    def simulate(self):
+        pass
+
+    def reset(self):
+        pass
+
+    def simulate_current(self):
+        pass
+
+    def reset_current(self):
+        pass
+
+    def dispatch(self) -> Dispatch:
+        pass
 
 
 class SimulatorLineUpManager(SimulatorAgent):
@@ -192,7 +226,7 @@ class SimulatorLineUpManager(SimulatorAgent):
         return super().dispatch()
 
 
-class SimulatorActionManager(SimulatorAgent):
+class SimulatorActionSimulateManager(SimulatorAgent):
     def __init__(self, simulator: Simulator, team: str, mask: Set[Tuple[int, str]]):
         super().__init__(simulator.game)
         self.team: str = team
@@ -219,3 +253,20 @@ class SimulatorActionManager(SimulatorAgent):
 
     def dispatch(self) -> Dispatch:
         return self.simulator.dispatch
+
+
+class SimulatorActionMiniMaxManager(SimulatorActionSimulateManager):
+    def simulate(self):
+        for _ in range(INTERVAL_MANGER):
+            self.simulator.simulate_instance(set([(100, HOME), (100, AWAY)]))
+
+    def reset(self):
+        for _ in range(INTERVAL_MANGER):
+            self.simulator.reset_instance()
+
+    def simulate_current(self):
+        mask = self.mask.copy()
+        if self.team == HOME:
+            mask.add((100, AWAY))
+        self.simulator.simulate_instance(
+            mask)

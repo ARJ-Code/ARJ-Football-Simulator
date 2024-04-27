@@ -1,0 +1,2 @@
+HOME = 'H'
+AWAY = 'A'

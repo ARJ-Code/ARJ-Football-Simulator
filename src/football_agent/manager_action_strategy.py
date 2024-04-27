@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Set
+from typing import List, Tuple
 from random import choice
 
 from football_agent.actions import Action
@@ -7,9 +7,10 @@ from .simulator_agent import SimulatorAgent
 from football_tools.game import Game
 from .actions import *
 from .manager_line_up_strategy import possibles_line_up
+from football_tools.enum import HOME, AWAY
 
-HOME = 'H'
-AWAY = 'A'
+MIN = -10000000000
+MAX = 10000000000
 
 CANT_SIMULATIONS = 1
 
@@ -111,3 +112,74 @@ class ActionSimulateStrategy(ManagerActionStrategy):
         action, _ = max(results.items(), key=lambda x: x[1][0]*1000+x[1][1])
 
         return actions[action]
+
+
+class ActionMiniMaxStrategy(ManagerActionStrategy):
+    def action(self, team: str, simulator: SimulatorAgent) -> Action:
+        print(f'{"HOME" if team ==HOME else "AWAY"} manager is thinking')
+
+        depth = 2
+
+        simulator.simulate_current()
+        action = self.home_function(simulator, depth, MIN, MAX)[1] if team == HOME else self.away_function(
+            simulator, depth, MIN, MAX)[1]
+        simulator.reset_current()
+
+        return action
+
+    def home_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
+
+        if depth == 0 or simulator.game.is_finish():
+            return self.evaluation(simulator.game)
+    
+        best = MIN
+        best_action = 0
+
+        actions = possibles_action(simulator.game, HOME)
+
+        for i, action in enumerate(actions):
+            simulator.dispatch().dispatch(action)
+
+            r, _ = self.away_function(simulator, depth-1, alpha, beta)
+
+            if r > best:
+                best = r
+                best_action = i
+
+            simulator.dispatch().reset()
+
+            if best > beta:
+                return best, best_action
+
+        return best, actions[best_action]
+
+    def away_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
+        if depth == 0 or simulator.game.is_finish():
+            return self.evaluation(simulator.game)
+
+        best = MAX
+        best_action = 0
+
+        actions = possibles_action(simulator.game, AWAY)
+
+        for i, action in enumerate(actions):
+            for _ in range(CANT_SIMULATIONS):
+                simulator.dispatch().dispatch(action)
+                simulator.simulate()
+
+                r, _ = self.home_function(simulator, depth-1, alpha, beta)
+
+                if r < best:
+                    best = r
+                    best_action = i
+
+                simulator.reset()
+                simulator.dispatch().reset()
+
+                if best < alpha:
+                    return best, best_action
+
+        return best, actions[best_action]
+
+    def evaluation(self, game: Game) -> Tuple[int, Action | None]:
+        return game.home.statistics.goals-game.away.statistics.goals, None

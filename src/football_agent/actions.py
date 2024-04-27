@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from football_tools.game import Game
-from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
 from typing import List, Tuple, Dict
 from random import random, randint
-from football_tools.line_up import LineUp
 
-AWAY = 'A'
-HOME = 'H'
+from football_tools.game import Game
+from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
+from football_tools.line_up import LineUp
+from football_tools.enum import HOME, AWAY
 
 
 class Action(ABC):
@@ -204,15 +203,15 @@ class AggressionTrigger(Action):
     def reset(self):
         x, y = self.src
 
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
         if player_statistics.red_cards == 1 or player_statistics.yellow_cards == 2:
-            self.game.field[x][y].player = self.player
-            self.game.field[x][y].team = self.team
+            self.game.field.grid[x][y].player = self.player
+            self.game.field.grid[x][y].team = self.team
             team_data = self.game.home if self.team == HOME else self.game.away
             team_data.on_field.add(self.player)
             team_data.unavailable.remove(self.player)
-
-        team_statistics = self.get_statistics()
-        player_statistics = self.get_player_statistics()
 
         team_statistics.fouls -= 1
         player_statistics.fouls -= 1
@@ -553,8 +552,12 @@ class Dispatch:
         player = action.game.field.grid[x][y].player
         team = action.game.field.grid[x][y].team
 
-        x, y = (1, 5) if team == AWAY else (18, 5)
+        x, y = (1, 5) if team == HOME else (18, 5)
         gk = action.game.field.grid[x][y].player
+
+        if gk == -1:
+            self.dispatch(GoalTrigger(action, team))
+            return
 
         if team == AWAY:
             props_a = [game.away.data[player].shooting]
