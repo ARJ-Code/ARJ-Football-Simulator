@@ -1,0 +1,108 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Proyecto final de IA y Simulaciòn}
+\author{Juan Carlos Espinosa Delgado C-411 \\
+        Raudel Gòmez Molina C-411\\
+        Alex Sierra Alcalà C-411
+}
+\date{28 de arbil de 2024}
+\begin{document}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Introducciòn}
+    El fútbol es un deporte de equipo muy popular en todo el mundo, y su simulación mediante técnicas de inteligencia artificial (IA) se ha convertido en un área de investigación activa. La simulación de partidos de fútbol permite a los investigadores y profesionales del deporte estudiar diferentes estrategias, tácticas y escenarios de juego sin la necesidad de partidos físicos reales.\\
+    Este informe presenta los resultados de un proyecto de simulación de un partido de fútbol utilizando técnicas de IA. El objetivo del proyecto era desarrollar un modelo de simulación que pudiera generar partidos de fútbol realistas y que permitiera a los usuarios experimentar con diferentes parámetros y estrategias para hacer predicciones de estos partidos.
+\newpage
+\section{Modelaciòn basada en Agentes}
+    Para realizar simulaciones de los juegos hacemos uso de agentes inteligentes, nuestro
+ambiente consistirà en el estado actual del juego, que està compuesto por sus jugadores, la
+estrategia que siguen, sus atributos de jugador actuales, los entrenadores, el terreno y las estadìsticas actuales del partido.
+Nuestros agentes seràn los jugadores y entrenadores y su funciòn objetivo serà ganar el partido.
+    
+\subsection{Modelaciòn del ambiente}
+    Nuestro ambiente consta de las siguientes caracterìsticas:\\
+    \\
+    \begin{enumerate}
+    \item \textbf{Accesibilidad}: Nuestro ambiente es totalmente accesible, cada jugador posee conocimiento acerca del resto de los jugadores y de sus posiciones en el terreno, de dònde se encuentra el balòn y de las estadìstricas actuales del partido.
+    
+    \item \textbf{Determinista o no determinista}: Nuestro ambiente es un ambiente no determinista, ya que, al no conocer el resultado de cada acciòn con certeza, existe incertidumbre acerca del estado del ambiente luego de realizar una acción.
+    
+    \item \textbf{Episódico o secuencial}: Este ambiente es secuencial, ya que las decisiones del agente pueden influir de forma positiva o negativa en el futuro, por lo que tiene que razonar las consecuencias de sus acciones.
+    
+    \item \textbf{Estático o dinámico}: Es un ambiente estático, ya que permanece inalterable mientras no se realice una acción sobre él, de hecho, todos los jugadores deben realizar su acción(la cual puede ser no hacer nada) para poder avanzar en el partido.
+    
+    \item \textbf{Discreto o continuo}: Para la simplificaciòn del ambiente optamos por que fuera discreto, aunq eso no aleje un poco de la realidad. En cada instancia de tiempo, cada jugador puede realizar un número constante de acciones(solo una). Dichos jugadores no son hilos corriendo independientes sino que se hace algo parecido a un juego por turnos.
+\end{enumerate}
+
+\subsection{Tipos de Agentes}
+    \subsubsection{Agente jugador}
+    Nuestros jugadores son agentes puramente reactivos ya que basan su desiciòn enteramente en el presente, sin referencia a lo que haya pasado anteriormente. Estos simplemente responden directamente al ambiente.\\ \\
+    Estos agentes fueron modelados con varios comportamientos, entre ellos se encuentran ofensivo, defensivo, evitar cansancio y el respeto por la posiciòn inicial impuesta por el entrenador. En dependencia de si los jugadores son defensas, mediocampistas o delanteros, tendran una estrategia basada en una heurìstica, la cual funciona dàndole pesos a cada uno de los comportamientos del agente, y un pequeño peso a un comportamiento aleatorio.\\
+
+    Para la toma de desiciones de un jugador durante la simulaciòn, estos hacen uso de un algoritmo de Minimax, para tratar de tomar la decisiòn que mejor deje parado al equipo basado en una funciòn de evaluaciòn. En esta funciòn se le da una valoraciòn a què tan bien està posicionado el equipo del jugador ofensivamente en caso de tener el balòn o defensivamente en caso de que la posesiòn sea del equipo contrario. Para hacer esta valoraciòn tenemos en cuenta la posiciòn del balòn y la distancia a la que este se encuentra de la porterìa rival, las oportunidades de pase, el marcador actual del partido y se hace una valoraciòn tambièn de la ventaja que tiene un equipo sobre otro en el terreno haciendo uso de las estadìsticas del partido con diferentes pesos en donde por ejemplo se usan los goles, faltas, pases, pases, tiros y tarjetas, donde un gol tiene bastante mas peso que un pase  o un disparo. Teniendo en cuenta los valores numèricos todos estos factores el jugador evalùa la posiciòn ofensiva/defensiva de su equipo basado en reglas de lògica difusa donde por ejemplo, si el jugador considera que un atacante està ¨lejos¨(segùn lo que considere lejos ese jugador) de la porterìa rival, este no tiene una posiciòn ofensiva buena.\\
+
+    Como en la vida real, un jugador no sabe còmo percibe el resto de los jugadores los datos de un partido, este no tiene conocimiento de sus funciones de evaluaciòn en nuestra simulaciòn, por lo que a la hora de ejecutar el Minimax su predicciòn del partido no es del todo exacta, haciendo su pensamiento màs realista. Para intuir las acciones del resto de los jugadores, hace uso de las heurìsticas explicadas anteriormente, dependiendo si el jugador a predecir es defensor, centrocampista o delantero, teniendo en cuenta los comportamientos màs probables de estos tipos de jugadores.
+    
+    \subsubsection{Agente entrenador}
+    Nuestros agentes entrenadores, son agentes puramente reactivos ya que, al igual que los jugadores, basan su desiciòn enteramente en el presente, sin referencia a lo que haya pasado anteriormente.\\ 
+
+    Su primera tarea serà la de elegir el 11 inicial. Para ello tienen distintas posibilidades de formaciones(4-3-3, 5-3-2, etc) Para cada formaciòn eligen a los 11 jugadores haciendo uso de una heurìstica que consiste en que el mejor 11 posible a alinear es aquel que mejores jugadores tenga en general(basado en los atributos de los jugadores de nuestro dataset) Este explora todas las combinaciones de 11 jugadores posibles de la plantilla en donde ningùn jugador estè fuera de posiciòn(por ejemplo no ve ninguna combinaciòn en la que Messi sea portero) Luego de elegir para cada formaciòn su mejor alineaciòn, el entrenador hace uso de un algoritmo MCTS teniendo en cuenta todas sus formaciones posibles y las del entrenador rival y decide alinear la que màs porcentaje de victoria le de. Al ser no determinista nuestra simulaciòn y no saber el resultado de cada acciòn en el juego con certeza, los datos devueltos por el Monte Carlo no siempre son iguales, por lo que para un mismo partido a simular las formaciones no siempre seràn las mismas, otra vez cumpliendo el objetivo de acercar nuestro modelo de simulaciòn a la realidad.\\
+
+    Una vez empezado el partido con las alineaciones decididas por cada entrenador, estos tambièn pueden ejecutar acciones. Entre estas se encuentran hacer cambios de jugadores, cambios de estrategia(ofensivo, neutral, defensivo) y cambios de formaciones. En los cambios de formaciones los entrenadores si podràn situar jugadores en posiciones que no aparezcan entre las posibles a jugar por estos, teniendo una penalizaciòn en sus atributos de habilidades(ya que en la vida real los jugadores que juegan fuera de sus posiciones habituales no son igual de buenos que en estas). Para tomar las desiciones sobre què acciòn ejecutar, los entrenadores hacen uso de otro algoritmo MCTS en el cual simulan las distintas decisiones que pueden tomar para ver còmo afectan al partidoy cuàles serìan las posibles acciones del entrenador rival. Como mismo sucedìa en la confecciòn de la alineaciòn inicial, se tomarà la decision que màs probabilidades de victoria de al equipo segùn los datos devueltos por el Monte Carlo. En una situaciòn similar que los jugadores, los entrenadores en la vida real, tampoco son capaces de predecir con exactitud las acciones del entrenador rival, por lo que hacen uso de una heurìstica...\\
+
+    \section{No olvidar hablar de la heuristica de los entrenadores}
+    \section{Simulaciòn de partidos}
+    \subsection{Campo de juego y posiciones}
+    El terreno de juego se representa gráficamente con un
+array de 20 filas por 11 columnas donde se intenta simular un campo de fútbol real, con lìmites por los lados y por el fondo, y con dos porterías. Una vez que introducimos a los jugadores en el campo para simular un partido, ocupan las posiciones predeterminadas para cada posición, que varían dependiendo de la táctica utilizada. Aquí podemos ver un ejemplo de las formaciones iniciales de un
+partido y de las posiciones que existen: 
+
+
+\includegraphics*[width=1\textwidth]{terreno.jpg}
+\bigskip
+
+\includegraphics*[width=1\textwidth]{tabla_informe.jpg}
+
+
+    \subsection{Atributos de los jugadores}
+Los datos de los equipos y jugadores son extraìdos de un dataset del FIFA22 de EA Sports. Un jugador tiene un nombre, un conjunto de posiciones, equipo al que pertenece, un dorsal y, además, doce atributos preestablecidos. A continuaciòn una relaciòn de en què acciones se usa cada uno de los atributos:\\
+
+\includegraphics*[width=1\textwidth]{tabla_atributos.jpg}
+\bigskip
+
+Ademàs de los atributos vistos en la tabla anterior, hacemos uso de la resistencia de los jugadores. cada acciòn que realiza un jugador tiene un costo de estamina. Existe tambièn la acciòn de moverse en  el terreno, tanto con balòn como sin èl, donde lo ùnico que sucede es la disminuciòn de estamina sin tener que utilizar ninguno de los atributos de la tabla.\\ 
+
+Los atributos preestablecidos son valores numéricos previamente asignados en el
+script de creación, con valores posibles del 1 al 99, pero que generalmente se
+encuentran entre 60 y 85, donde se evalúa de forma precisa cómo de bueno es un
+jugador en un aspecto físico o técnico a la hora de jugar un partido.
+Para poner un ejemplo, un atributo es la Velocidad. Si un jugador llamado JUGADOR1
+tiene un valor de 83 de velocidad, y otro jugador llamado JUGADOR2 tiene un valor de
+70 de velocidad, significa que el JUGADOR1 es más rápido que el JUGADOR2. Esto quiere decir que, a la hora de jugar el partido, es más probable que JUGADOR1 gane a
+JUGADOR2 en velocidad.
+Es importante no confundir esta última frase. Es más probable que JUGADOR1 gane a
+JUGADOR2 en velocidad, pero no significa que JUGADOR1 gane a JUGADOR2 siempre.\\\\
+Para explicar cuál es la probabilidad de que gane uno u otro jugador,
+explicaremos a continuaciòn cómo funciona el algoritmo de probabilidades:\\
+
+Supongamos que ocurre un pase, donde el receptor(del equipo atacante) tiene 81 en reacciones y 85 en control del balòn y el defensa que quiere interceptar tiene 68 en intercepciòn y 72 en defensa. Hacemos una normalizaciòn que no es màs que la media de los atributos implicados del jugador y sacaremos un valor aleatorio entre ese factor y 99. Ese serà nuestro factor de aleatoriedad.
+    
+    
+\includegraphics*[width=1\textwidth]{rango.jpg}
+\bigskip
+
+    Con estos datos, podemos afirmar que, si JUGADOR1 y JUGADOR2 disputasen una
+recepciòn de un pase en medio de un partido, JUGADOR1 tendría más posibilidades de
+ganarla, pero esto no implica que tenga que ganar siempre.
+Obviamente, cuanta más diferencia hay entre los valores de los jugadores, más fácil es
+ganar el algoritmo de aleatoriedad para el de valor superior. En caso de empate en los factores de aleatoriedad ganarà el duelo el jugador a la defensa.
+
+\section{Integraciòn con LLM}
+    
+\end{document}
