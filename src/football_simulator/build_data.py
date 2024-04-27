@@ -8,9 +8,7 @@ from football_agent.team import TeamAgent
 from football_tools.data import TeamData
 from football_simulator.simulator import FootballSimulation
 from .simulation_params import SimulationParams
-
-HOME = 'H'
-AWAY = 'A'
+from football_tools.enum import HOME, AWAY
 
 
 def get_data(team: str, df: DataFrame) -> List[PlayerData]:

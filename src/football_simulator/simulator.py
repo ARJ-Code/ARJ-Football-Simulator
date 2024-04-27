@@ -1,11 +1,13 @@
 from football_agent.actions import Dispatch, MiddleTime, IncrementInstance, IncrementPossession
 from football_tools.game import Game
 from football_tools.data import TeamData
-from football_agent.team import HOME, AWAY, TeamAgent
+from football_agent.team import TeamAgent
 from typing import Generator, Tuple, Set, List
 from football_agent.simulator_agent import SimulatorAgent
 from football_agent.manager_agent import Manager
 from football_agent.manager_action_strategy import ActionSimulateStrategy, ActionMiniMaxStrategy
+from football_tools.enum import HOME, AWAY
+
 import math
 
 CANT_INSTANCES = 180

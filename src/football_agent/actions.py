@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from football_tools.game import Game
-from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
 from typing import List, Tuple, Dict
 from random import random, randint
-from football_tools.line_up import LineUp
 
-AWAY = 'A'
-HOME = 'H'
+from football_tools.game import Game
+from football_tools.data import StatisticsTeam, StatisticsPLayer, PlayerData
+from football_tools.line_up import LineUp
+from football_tools.enum import HOME, AWAY
 
 
 class Action(ABC):
@@ -556,7 +555,7 @@ class Dispatch:
         x, y = (1, 5) if team == HOME else (18, 5)
         gk = action.game.field.grid[x][y].player
 
-        if gk==-1:
+        if gk == -1:
             self.dispatch(GoalTrigger(action, team))
             return
 

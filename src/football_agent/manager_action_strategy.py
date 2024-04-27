@@ -7,9 +7,7 @@ from .simulator_agent import SimulatorAgent
 from football_tools.game import Game
 from .actions import *
 from .manager_line_up_strategy import possibles_line_up
-
-HOME = 'H'
-AWAY = 'A'
+from football_tools.enum import HOME, AWAY
 
 MIN = -10000000000
 MAX = 10000000000

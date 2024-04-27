@@ -1,8 +1,9 @@
 from numpy import double, random
+
 from football_tools.game import Game, GridField
 from .actions import Action, Dribble, Move, Nothing, Pass, Shoot, StealBall
+from football_tools.enum import HOME
 
-HOME = 'H'
 
 class Behavior:
     def __init__(self, importance: double = 1) -> None:
@@ -14,10 +15,12 @@ class Behavior:
     def change_importance(self, importance: double) -> None:
         self.importance = importance
 
+
 class Random(Behavior):
     def eval(self, action: Action, game: Game) -> double:
         return random.rand() * self.importance
-    
+
+
 class ReturnToPosition(Behavior):
     def eval(self, action: Action, game: Game) -> double:
         team = game.home if action.team == HOME else game.away
@@ -29,8 +32,9 @@ class ReturnToPosition(Behavior):
         if action is Move:
             return (1 if game.field.distance(destination, line_up_position) < game.field.distance(source, line_up_position) else 0) \
                 * self.importance
-        else: 
+        else:
             return 0
+
 
 class Defensive(Behavior):
     def eval(self, action: Action, game: Game) -> double:
@@ -65,6 +69,7 @@ class Defensive(Behavior):
 
         return value * self.importance
 
+
 class Ofensive(Behavior):
     def eval(self, action: Action, game: Game) -> double:
         source = action.src
@@ -86,7 +91,8 @@ class Ofensive(Behavior):
             if action is Shoot:
                 value += 3 / game.field.distance(source, enemy_goal[1])
             if action is Pass:
-                diff_distance = game.field.distance(source, enemy_goal[1]) - game.field.distance(destination, enemy_goal[1])
+                diff_distance = game.field.distance(
+                    source, enemy_goal[1]) - game.field.distance(destination, enemy_goal[1])
                 if diff_distance > 0:
                     value += 1 - 1 / (diff_distance + 1)
         # else:
@@ -102,6 +108,7 @@ class Ofensive(Behavior):
         #         value = 1
 
         return value * self.importance
+
 
 class AvoidFatigue(Behavior):
     def eval(self, action: Action, game: Game) -> double:
@@ -132,8 +139,7 @@ class AvoidFatigue(Behavior):
         enemy_team = game.away if team == HOME else game.home
         if self_team.statistics.goals - enemy_team.statistics.goals > 1:
             self.importance *= 1.1
-        else:  
+        else:
             self.importance *= 0.9
         if game.instance == 80:
             self.importance *= 0.75
-

@@ -1,8 +1,9 @@
 from typing import List, Tuple
 import math
 from numpy import double
-from .data import HOME, AWAY, TeamData
+from .data import TeamData
 from .line_up import LineUp
+from .enum import HOME, AWAY
 
 
 class GridField:
@@ -15,7 +16,7 @@ class GridField:
 
     def is_empty(self) -> bool:
         return self.player == -1
-    
+
     def is_contiguous(self, g: 'GridField'):
         return (abs(self.row - g.row) == 1 and abs(self.col - g.col) == 1) or (abs(self.row - g.row) + abs(self.col - g.col) == 1)
 
@@ -93,14 +94,14 @@ class Field:
         xd, yd = dest
 
         return math.sqrt((xs-xd)**2+(ys-yd)**2)
-    
+
     @staticmethod
     def int_distance(src: Tuple[int, int], dest: Tuple[int, int]):
         xs, ys = src
         xd, yd = dest
 
         return max(abs(xs-xd), abs(ys-yd))
-    
+
     def int_distance_goal_h(self, src: Tuple[int, int]):
         return min(Field.int_distance(d, src) for d in self.goal_h)
 
@@ -120,7 +121,7 @@ class Field:
                     return grid
         raise Exception(
             f"There is no player with the dorsal {dorsal} of the {team} team on the field")
-    
+
     def find_ball(self) -> GridField:
         for row in self.grid:
             for grid in row:

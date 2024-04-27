@@ -1,14 +1,14 @@
-from typing import List
-from abc import ABC, abstractmethod
-from random import choice
 from .actions import *
 from football_tools.line_up import *
 from football_tools.game import Game
 from .simulator_agent import SimulatorAgent
-import random
+from football_tools.enum import HOME, AWAY
 
-HOME = 'H'
-AWAY = 'A'
+import random
+from typing import List
+from abc import ABC, abstractmethod
+from random import choice
+
 
 CANT_SIMULATIONS = 1
 

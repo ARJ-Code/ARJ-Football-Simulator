@@ -1,13 +1,7 @@
-from abc import ABC
-
 from .actions import *
 from football_tools.game import *
 from typing import List, Tuple, Generator
-
 from .player_strategy import Strategy
-
-AWAY = 'A'
-HOME = 'H'
 
 
 class Player:
