@@ -75,7 +75,7 @@ defensas, mediocampistas o delanteros, tendrán una estrategia basada en una heu
 pesos a cada uno de los comportamientos del agente, y un pequeño peso a un comportamiento aleatorio. De esta forma 
 cada jugador puede variar su configuración de comportamiento en dependencia de su posición en la alineación.
 
-Otra estrategia implementada se basa en el algoritmo minimax (no fue posible la implementación concreta del algoritmo 
+Otra estrategia implementada se basa en el algoritmo \textbf{minimax} (no fue posible la implementación concreta del algoritmo
 ya que nuestras transiciones de estados dependen de probabilidades por lo que son no deterministas). Por esta razón 
 optamos por evaluar todas las posibles acciones del agente y tomando cada una de estas simular el comportamiento del 
 resto de los agentes y en la próxima instancia de tiempo volver a evaluar todas las posibles acciones del agente y así 
@@ -94,7 +94,7 @@ Todas las reglas mencionadas anteriormente se aplican al algoritmo de evaluació
 
 
 Como en la vida real, un jugador no sabe cómo percibe el resto de los jugadores los datos de un partido, este no 
-tiene conocimiento de sus funciones de evaluación en nuestra simulación, por lo que a la hora de ejecutar el minimax 
+tiene conocimiento de sus funciones de evaluación en nuestra simulación, por lo que a la hora de ejecutar el \textbf{minimax}
 su predicción del partido no es del todo exacta, haciendo su pensamiento más realista. Para intuir las acciones del 
 resto de los jugadores, hace uso de las heurísticas explicadas anteriormente, dependiendo si el jugador a predecir 
 es defensor, centrocampista o delantero, teniendo en cuenta los comportamientos màs probables de estos tipos de 
@@ -114,7 +114,7 @@ posición (por ejemplo no ve ninguna combinación en la que Messi sea portero) t
 heurística descrita anteriormente. Luego de elegir para cada formación su mejor alineación, el entrenador simula 
 varias veces todas sus formaciones posibles y las del entrenador rival y decide alinear la que màs porcentaje de 
 victoria le dé. Al ser no determinista nuestra simulación y no saber el resultado de cada acción en el juego con 
-certeza, no pudimos hacer usos de algoritmos como el MTCS para el cual está probada su eficacia en este tipo de 
+certeza, no pudimos hacer usos de algoritmos como el \textbf{MTCS} para el cual está probada su eficacia en este tipo de 
 contextos pero en el caso de los deterministas, por lo que se optó por la idea descrita anteriormente.
 
 Una vez empezado el partido con las alineaciones decididas por cada entrenador, estos también pueden ejecutar 
@@ -126,7 +126,7 @@ ejecutar, los entrenadores siguen el mismo algoritmo descrito para elegir la ali
 asumen que el técnico rival jugará random ya que no es posible probar todas las posibles acciones y llegar hasta el 
 final del partido.
 
-Otra estrategia implementada para los entrenadores es siguiendo la misma idea que la mencionada para el minimax de los jugadores.
+Otra estrategia implementada para los entrenadores es siguiendo la misma idea que la mencionada para el \textbf{minimax} de los jugadores.
 En este caso es mucho más fácil ya que solo se tiene en cuenta la interacción de los dos entrenadores, por lo que en este
 caso si se evalúan todas las posibles acciones de ambos entrenadores y se simula hasta la próxima instancia de tiempo en que le corresponda
 jugar, así hasta llegar a bajar una cantidad de niveles y luego utilizar la misma evaluación del campo que utilizaban los jugadores
@@ -201,9 +201,9 @@ comenzando por el jugador que tiene la pelota. Las acciones que pueden realizar 
       \item \textbf{StealBall}: Los jugadores a la defensa tienen la posibilidad de robar el balón si alguien del equipo rival recibe un pase  o se mueve con el balón hacia una casilla contigua a la suya.
             
       \item \textbf{Shoot}: Los jugadores con balón siempre tienen la oportunidad de disparar, con un probabilidad de que el balón vaya a portería en dependencia de su habilidad de tiro y distancia a esta, y en caso de que vaya a puerta hay otra probabilidad de que sea gol.
+            
+\end{enumerate}
 
-  \end{enumerate}
-  
 
 \subsection{Acciones de los entrenadores}
 
@@ -219,7 +219,7 @@ Las posibles acciones de los entrenadores son las siguientes:
             
       \item \textbf{ChangeLineUp}: Todo entrenador tiene la posibilidad de cambiar la formación en medio de un partido, penalizando a los jugadores que queden jugando fuera de sus posiciones habituales.
             
-  \end{enumerate}
+\end{enumerate}
 
 
 \section{Integración con LLM}
@@ -251,6 +251,10 @@ Los posibles parámetros de configuración de la simulación son los siguientes:
             caso son \textbf{random}, \textbf{heuristic} y \textbf{minimax} las cuales están basadas en las estrategias descritas anteriormente. Por lo
             que entonces se le pide al modelo que identifique estos parámetros.
             
+            
 \end{itemize}
+
+\includegraphics*[width=0.9\textwidth]{llm.png}
+\bigskip
 
 \end{document}
