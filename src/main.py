@@ -1,9 +1,14 @@
+from football_agent.manager_action_strategy import ActionRandomStrategy
+from football_agent.manager_line_up_strategy import LineUpRandomStrategy
+from football_agent.player_strategy import FootballStrategy, OfensorStrategy, RandomStrategy
 from football_simulator.build_data import conf_game
 from football_llm.conf_game_llm import conf_game_llm
 
 import os
 import time
 import pandas as pd
+
+from football_simulator.simulation_params import SimulationParams
 
 df = pd.read_csv('data/players_22.csv')
 
@@ -26,6 +31,11 @@ if params is None:
 
 print('Simulación configurada correctamente')
 
+# params = SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
+#                           (LineUpRandomStrategy(), LineUpRandomStrategy()),
+#                           (ActionRandomStrategy(), ActionRandomStrategy()), 
+#                           (RandomStrategy(), RandomStrategy()))
+
 sim = conf_game(params, df)
 
 
@@ -37,6 +47,6 @@ def clear_console():
 
 
 for s in sim.simulate():
-    time.sleep(0.5)
+    # time.sleep(0.5)
     clear_console()
     print(s)

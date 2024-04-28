@@ -18,7 +18,7 @@ GOALKEEPER = 'GOALKEEPER'
 MIN = -10000000000
 MAX = 10000000000
 
-CANT_SIMULATIONS = 1
+CANT_SIMULATIONS = 30
 
 
 def possibles_change_player(game: Game, team: str) -> List[Action]:
