@@ -103,7 +103,7 @@ class Simulator:
 
     def simulate_players(self, team: str, player_with_ball: int, mask: Set[Tuple[int, str]], heuristic_player: bool):
         sim = self.get_player_simulator(team, mask)
-        
+
         if team == HOME and not (player_with_ball, team) in mask:
             self.dispatch.dispatch(
                 self.home.players[player_with_ball].play_heuristic(sim) if heuristic_player else
@@ -220,7 +220,8 @@ class SimulatorLineUpManager(SimulatorAgent):
 
     def simulate(self):
         while not self.game.is_finish():
-            self.simulator.simulate_instance(set([]), heuristic_manager=True, heuristic_player=True)
+            self.simulator.simulate_instance(
+                set([]), heuristic_manager=True, heuristic_player=True)
 
     def reset(self):
         self.simulator.reset_all()
@@ -232,7 +233,7 @@ class SimulatorLineUpManager(SimulatorAgent):
         return super().reset_current()
 
     def dispatch(self) -> Dispatch:
-        return super().dispatch()
+        return self.simulator.dispatch
 
 
 class SimulatorActionSimulateManager(SimulatorAgent):
@@ -246,7 +247,8 @@ class SimulatorActionSimulateManager(SimulatorAgent):
 
     def simulate(self):
         while not self.simulator.game.is_finish():
-            self.simulator.simulate_instance(set([]), heuristic_manager=True, heuristic_player=True)
+            self.simulator.simulate_instance(
+                set([]), heuristic_manager=True, heuristic_player=True)
 
     def reset(self):
         while self.simulator.game.instance != self.instance+1:
@@ -262,7 +264,8 @@ class SimulatorActionSimulateManager(SimulatorAgent):
 
     def dispatch(self) -> Dispatch:
         return self.simulator.dispatch
-    
+
+
 class SimulatorActionSimulatePlayer(SimulatorAgent):
     def __init__(self, simulator: Simulator, team: str, mask: Set[Tuple[int, str]]):
         super().__init__(simulator.game)
@@ -274,7 +277,8 @@ class SimulatorActionSimulatePlayer(SimulatorAgent):
 
     def simulate(self, player: int, just_once: bool = False):
         while not self.simulator.game.is_finish():
-            self.simulator.simulate_instance(set([(player, self.team)]), heuristic_manager=True, heuristic_player=True)
+            self.simulator.simulate_instance(
+                set([(player, self.team)]), heuristic_manager=True, heuristic_player=True)
             if just_once:
                 break
 

@@ -13,7 +13,6 @@ class Manager:
         self.team: str = team
 
     def get_line_up(self, simulator: SimulatorAgent) -> LineUp:
-        print(self.team, simulator)
         return self.line_up_strategy.get_line_up(self.team, simulator)
 
     def action(self, simulator: SimulatorAgent) -> Action:
