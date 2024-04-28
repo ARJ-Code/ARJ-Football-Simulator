@@ -31,6 +31,11 @@ if params is None:
 
 print('Simulación configurada correctamente')
 
+# params = SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
+#                           (LineUpRandomStrategy(), LineUpRandomStrategy()),
+#                           (ActionRandomStrategy(), ActionRandomStrategy()), 
+#                           (RandomStrategy(), RandomStrategy()))
+
 sim = conf_game(params, df)
 
 
@@ -42,6 +47,6 @@ def clear_console():
 
 
 for s in sim.simulate():
-    # time.sleep(0.5)
+    time.sleep(0.5)
     clear_console()
     print(s)

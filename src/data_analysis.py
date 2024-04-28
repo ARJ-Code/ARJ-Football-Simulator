@@ -1,7 +1,7 @@
 from football_simulator.build_data import conf_game
 
 import pandas as pd
-from params import *
+from starting_params import *
 import json
 import time
 
@@ -12,14 +12,19 @@ class Color:
 
 df = pd.read_csv('data/players_22.csv')
 
-params = [all_random, 
-          all_smart, 
-          smart_line_up, 
-          smart_vs_random_line_up, 
-          smart_action, 
-          smart_vs_random_action, 
-          smart_player, 
-          smart_vs_random_player]
+params = [
+          all_random, 
+        #   all_smart, 
+        #   smart_line_up, 
+        #   smart_vs_random_line_up, 
+        #   smart_action, 
+        #   smart_vs_random_action, 
+        #   minimax_vs_minimax_action,
+        #   minimax_vs_random_action,
+        #   minimax_vs_smart_action,
+        #   smart_player, 
+        #   smart_vs_random_player
+          ]
 
 initial_time = time.time()
 
@@ -33,7 +38,7 @@ for p in params:
             data[i] = s
 
         with open(file_name, "w") as archivo:
-            json.dump(s, archivo)
+            json.dump(data, archivo)
 
         actual_time = time.time()
 

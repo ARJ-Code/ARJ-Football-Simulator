@@ -39,6 +39,21 @@ smart_vs_random_action = StartingParams(SimulationParams(('FC Barcelona', 'Real 
                           (ActionRandomStrategy(), ActionSimulateStrategy()), 
                           (RandomStrategy(), RandomStrategy())), 'smart_vs_random_action')
 
+minimax_vs_minimax_action = StartingParams(SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
+                          (LineUpRandomStrategy(), LineUpRandomStrategy()),
+                          (ActionMiniMaxStrategy(), ActionMiniMaxStrategy()), 
+                          (RandomStrategy(), RandomStrategy())), 'minimax_vs_minimax_action')
+
+minimax_vs_random_action = StartingParams(SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
+                          (LineUpRandomStrategy(), LineUpRandomStrategy()),
+                          (ActionMiniMaxStrategy(), ActionRandomStrategy()), 
+                          (RandomStrategy(), RandomStrategy())), 'minimax_vs_random_action')
+
+minimax_vs_smart_action = StartingParams(SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
+                          (LineUpRandomStrategy(), LineUpRandomStrategy()),
+                          (ActionMiniMaxStrategy(), ActionSimulateStrategy()), 
+                          (RandomStrategy(), RandomStrategy())), 'minimax_vs_smart_action')
+
 smart_player = StartingParams(SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
                           (LineUpRandomStrategy(), LineUpRandomStrategy()),
                           (ActionRandomStrategy(), ActionRandomStrategy()), 

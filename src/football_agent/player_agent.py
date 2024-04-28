@@ -68,12 +68,12 @@ class Player:
         if self.get_data(game).power_stamina <= 0:
             return actions
         
-        home_goal = game.field.goal_h[1]
-        away_goal = game.field.goal_a[1]
+        home_goalkeeper = (1, 5)
+        away_goalkeeper = (18, 5)
 
         if not p_grid.ball:
             src = (p_grid.row, p_grid.col)
-            if src != home_goal and src != away_goal:
+            if src != home_goalkeeper and src != away_goalkeeper:
                 for grid in self.enemy_contiguous_grids(visible_grids, p_grid):
                     if grid.ball:
                         dest = (grid.row, grid.col)
@@ -86,7 +86,7 @@ class Player:
         else:
             src = (p_grid.row, p_grid.col)
             for grid in self.empty_contiguous_grids(visible_grids, p_grid):
-                if src == home_goal or src == away_goal:
+                if src == home_goalkeeper or src == away_goalkeeper:
                     break
                 dest = (grid.row, grid.col)
                 actions.append(MoveWithBall(
@@ -96,7 +96,7 @@ class Player:
             for grid in self.friendly_grids(visible_grids):
                 dest = (grid.row, grid.col)
                 actions.append(Pass(src, dest, self.dorsal, self.team, game))
-            if src != home_goal and src != away_goal:
+            if src != home_goalkeeper and src != away_goalkeeper:
                 actions.append(Shoot(src, self.dorsal, self.team, game))
 
         return actions
