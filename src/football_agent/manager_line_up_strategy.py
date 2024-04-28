@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from random import choice
 
 
-CANT_SIMULATIONS = 30
+CANT_SIMULATIONS = 10
 
 
 def players_by_position(players: List[PlayerData], line_up_grid: LineUpGrid) -> List[PlayerData]:
