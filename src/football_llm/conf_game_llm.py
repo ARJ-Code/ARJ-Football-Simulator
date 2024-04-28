@@ -104,18 +104,19 @@ de la izquierda es la estrategia del manager local y la de la derecha es la estr
         return strategies[home], strategies[away]
     except:
         return ActionRandomStrategy(), ActionRandomStrategy()
-    
+
+
 def players_action_prompt(user_prompt: str) -> Tuple[PlayerStrategy, PlayerStrategy]:
     prompt =\
         """
 Tengo la siguiente lista de estrategias de escoger las acciones durante el partido para los jugadores de mi simulación de fútbol 
 y esta query definida por el usuario, del texto introducido por el usuario dime que estrategia de escoger acciones 
-es la que desea el equipo local y cual es la que desea el visitador, con el siguiente formato: random vs minimX la 
+es la que desea el equipo local y cual es la que desea el visitador, con el siguiente formato: random vs minimax la 
 de la izquierda es la estrategia del equipo local y la de la derecha es la estrategia del equipo visitador
 """
 
     strategies = {'random': RandomStrategy(
-    ), 'simulate': FootballStrategy(), 'minimax': MinimaxStrategy()}
+    ), 'heuristic': FootballStrategy(), 'minimax': MinimaxStrategy()}
 
     response = query(prompt+'\n'+'\n'.join(strategies.keys())+'\n'+user_prompt)
 
@@ -125,4 +126,4 @@ de la izquierda es la estrategia del equipo local y la de la derecha es la estra
 
         return strategies[home], strategies[away]
     except:
-        return RandomStrategy(), RandomStrategy()
+        return FootballStrategy(), FootballStrategy()
