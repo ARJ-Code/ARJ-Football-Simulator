@@ -51,3 +51,12 @@ class TeamData:
         self.statistics = StatisticsTeam(self.name)
         for player in self.data.keys():
             self.players_statistics[player] = StatisticsPLayer()
+
+    def to_json(self) -> dict:
+        return {
+            'statistics': self.statistics.__dict__,
+            'on_field': list(self.on_field),
+            'on_bench': list(self.on_bench),
+            'change_history': self.change_history,
+            'players_statistics': {k: v.__dict__ for k, v in self.players_statistics.items()},
+        }

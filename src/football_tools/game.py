@@ -205,3 +205,9 @@ class Game:
 
     def is_finish(self):
         return self.instance >= self.cant_instances+1
+    
+    def to_json(self):
+        return {
+            'home': self.home.to_json(),
+            'away': self.away.to_json(),
+        }

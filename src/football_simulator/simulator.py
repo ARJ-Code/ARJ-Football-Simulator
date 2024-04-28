@@ -41,6 +41,16 @@ class FootballSimulation:
 
             yield field_str+'\n'+statistics
 
+    def simulate_and_save(self):
+        simulator = Simulator(self.home, self.away, self.game)
+
+        simulator.start_instance()
+
+        while not self.game.is_finish():
+            simulator.simulate_instance(set([]))
+            
+        return simulator.game.to_json()
+
     def game_statistics(self, instance: int, actions: int) -> str:
         nh = f'\033[34m{self.home.name}\033[0m'
         na = f'\033[31m{self.away.name}\033[0m'
