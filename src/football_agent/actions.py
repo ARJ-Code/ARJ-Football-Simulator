@@ -467,7 +467,7 @@ class Dispatch:
         if isinstance(action, LazyAction):
             self.lazy_stack.append(action)
 
-        if isinstance(action, ReorganizeField) and len(self.lazy_stack) != 0:
+        if isinstance(action, ReorganizeField):
             self.clear_lazy()
 
         self.stack.append(action)

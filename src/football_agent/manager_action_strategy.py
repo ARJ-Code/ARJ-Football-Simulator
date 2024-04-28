@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple
 from random import choice
 
-from football_agent.actions import Action
+from football_agent.actions import Action, ReorganizeField
 from football_agent.fuzzy_rules import fuzzy_defensive_position, fuzzy_ofensive_position
 from .simulator_agent import SimulatorAgent
 from football_tools.game import Game, GridField
@@ -136,8 +136,8 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
     def home_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
 
         if depth == 0 or simulator.game.is_finish():
-            return self.evaluation(simulator.game)
-    
+            return self.evaluation(simulator)
+
         best = MIN
         best_action = 0
 
@@ -161,7 +161,7 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
 
     def away_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
         if depth == 0 or simulator.game.is_finish():
-            return self.evaluation(simulator.game)
+            return self.evaluation(simulator)
 
         best = MAX
         best_action = 0
@@ -187,9 +187,25 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
 
         return best, actions[best_action]
 
-    def evaluation(self, game: Game, team: str) -> Tuple[int, Action | None]:
-        return game.home.statistics.goals-game.away.statistics.goals, None if team == HOME \
-            else game.away.statistics.goals-game.home.statistics.goals
+    def evaluation(self, simulator: SimulatorAgent) -> Tuple[int, Action | None]:
+        game = simulator.game
+        team_with_ball = ''
+
+        for l in game.field.grid:
+            for n in l:
+                if n.ball:
+                    team_with_ball = n.team
+                    break
+
+        simulator.dispatch().dispatch(ReorganizeField(game, team_with_ball))
+
+        value = ManagerGameEvaluator().eval(
+            game, HOME)-ManagerGameEvaluator().eval(game, AWAY)
+        simulator.dispatch().reset()
+        simulator.dispatch().reset()
+
+        return value, None
+
 
 class ManagerGameEvaluator:
     def eval(self, game: Game, team: str) -> float:
@@ -215,7 +231,7 @@ class ManagerGameEvaluator:
         defensive_importance = 1 - ofensive_importance
 
         value = 0
-        
+
         value += self.avg_defensive_position(game, team) * defensive_importance
         # value += self.avg_ofensive_position(game, team) * ofensive_importance
 
@@ -226,7 +242,7 @@ class ManagerGameEvaluator:
             for grid in r:
                 if grid.ball:
                     return grid
-                
+
     def avg_defensive_position(self, game: Game, team: str) -> float:
         defensive_positioning = fuzzy_defensive_position()
         avg = 0
