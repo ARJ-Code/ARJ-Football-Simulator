@@ -102,13 +102,16 @@ class Simulator:
         self.game.instance = 1
 
     def simulate_players(self, team: str, player_with_ball: int, mask: Set[Tuple[int, str]], heuristic_player: bool):
-        sim = self.get_player_simulator(team, mask)
 
         if team == HOME and not (player_with_ball, team) in mask:
+            mask.add((player_with_ball, HOME))
+            sim = self.get_player_simulator(HOME, player_with_ball, mask)
             self.dispatch.dispatch(
                 self.home.players[player_with_ball].play_heuristic(sim) if heuristic_player else
                 self.home.players[player_with_ball].play(sim))
         if team == AWAY and not (player_with_ball, team) in mask:
+            mask.add((player_with_ball, AWAY))
+            sim = self.get_player_simulator(AWAY, player_with_ball, mask)
             self.dispatch.dispatch(
                 self.away.players[player_with_ball].play_heuristic(sim) if heuristic_player else
                 self.away.players[player_with_ball].play(sim))
@@ -124,10 +127,12 @@ class Simulator:
                 if not n.ball:
                     mask.add((n.player, n.team))
                     if n.team == HOME:
+                        sim = self.get_player_simulator(HOME, n.player, mask)
                         self.dispatch.dispatch(
                             self.home.players[n.player].play_heuristic(sim) if heuristic_player else
                             self.home.players[n.player].play(sim))
                     if n.team == AWAY:
+                        sim = self.get_player_simulator(AWAY, n.player, mask)
                         self.dispatch.dispatch(
                             self.away.players[n.player].play_heuristic(sim) if heuristic_player else
                             self.away.players[n.player].play(sim))
@@ -140,8 +145,8 @@ class Simulator:
 
         return SimulatorRandom(self.game)
 
-    def get_player_simulator(self, team: str, mask: Set[Tuple[int, str]]):
-        return SimulatorActionSimulatePlayer(self, team, mask)
+    def get_player_simulator(self, team: str, player: int, mask: Set[Tuple[int, str]]):
+        return SimulatorActionSimulatePlayer(self, team, player, mask)
 
     def simulate_managers(self, mask: Set[Tuple[int, str]], heuristic_manager: bool):
 
@@ -267,24 +272,21 @@ class SimulatorActionSimulateManager(SimulatorAgent):
 
 
 class SimulatorActionSimulatePlayer(SimulatorAgent):
-    def __init__(self, simulator: Simulator, team: str, mask: Set[Tuple[int, str]]):
+    def __init__(self, simulator: Simulator, player: int, team: str, mask: Set[Tuple[int, str]]):
         super().__init__(simulator.game)
         self.team: str = team
         self.simulator: Simulator = simulator
         self.instance: int = simulator.game.instance
+        self.player: int = player
         self.stack_len: int = len(simulator.dispatch.stack)
         self.mask: Set[Tuple[int, str]] = mask
 
-    def simulate(self, player: int, just_once: bool = False):
-        while not self.simulator.game.is_finish():
-            self.simulator.simulate_instance(
-                set([(player, self.team)]), heuristic_manager=True, heuristic_player=True)
-            if just_once:
-                break
+    def simulate(self):
+        self.simulator.simulate_instance(
+            set([(self.player, self.team)]), heuristic_manager=True, heuristic_player=True)
 
     def reset(self):
-        while self.simulator.game.instance != self.instance + 1:
-            self.simulator.reset_instance()
+        self.simulator.reset_instance()
 
     def simulate_current(self):
         self.simulator.simulate_instance(

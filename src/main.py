@@ -1,4 +1,4 @@
-from football_agent.manager_action_strategy import ActionRandomStrategy, ActionMiniMaxStrategy
+from football_agent.manager_action_strategy import ActionRandomStrategy, ActionMiniMaxStrategy, ActionSimulateStrategy
 from football_agent.manager_line_up_strategy import LineUpRandomStrategy, LineUpSimulateStrategy
 from football_agent.player_strategy import MinimaxStrategy, RandomStrategy, FootballStrategy
 from football_simulator.build_data import conf_game
@@ -30,9 +30,9 @@ df = pd.read_csv('data/players_22.csv')
 
 # print('Simulación configurada correctamente')
 params = SimulationParams(('FC Barcelona', 'Real Madrid CF'),
-                          (LineUpSimulateStrategy(), LineUpSimulateStrategy()),
-                          (ActionMiniMaxStrategy(), ActionMiniMaxStrategy()),
-                          (FootballStrategy(), FootballStrategy()))
+                          (LineUpRandomStrategy(), LineUpRandomStrategy()),
+                          (ActionSimulateStrategy(), ActionSimulateStrategy()),
+                          (MinimaxStrategy(), MinimaxStrategy()))
 
 sim = conf_game(params, df)
 
