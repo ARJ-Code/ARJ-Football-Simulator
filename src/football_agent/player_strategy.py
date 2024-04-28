@@ -36,6 +36,7 @@ class FootballStrategy(PlayerStrategy):
         self.defensor = DefensorStrategy()
         self.ofensor = OfensorStrategy()
         self.midfield = MidfielderStrategy()
+        self.goalkeeper = GoalkeeperStrategy()
 
     def select_action(self, possible_actions: Callable[[Game], List[Action]], simulator: SimulatorAgent) -> Action:
         actions = possible_actions(simulator.game)
@@ -46,10 +47,12 @@ class FootballStrategy(PlayerStrategy):
             player) if team == 'H' else game.away.line_up.get_player_function(player)
         if player_function == ATTACK:
             return self.ofensor.select_action_behavior(actions, simulator)
+        elif player_function == DEFENSE:
+            return self.defensor.select_action_behavior(actions, simulator)
         elif player_function == MIDFIELD:
             return self.midfield.select_action_behavior(actions, simulator)
         else:
-            return self.defensor.select_action_behavior(actions, simulator)
+            return self.goalkeeper.select_action_behavior(actions, simulator)
 
 
 class RandomStrategy(BehaviorStrategy, PlayerStrategy):
@@ -91,6 +94,12 @@ class MidfielderStrategy(BehaviorStrategy):
                                           AvoidFatigue(importance=0.1),
                                           Random(importance=0.2)]
 
+
+class GoalkeeperStrategy(BehaviorStrategy):
+    def __init__(self) -> None:
+        super().__init__()
+        self.behaviors: List[Behavior] = [PassBall(importance=0.8),
+                                          Random(importance=0.2)]
 
 MIN = -10000000000
 
@@ -260,18 +269,11 @@ class GameEvaluator:
                     player_position = team_data.line_up.get_player_position(
                         grid.player)
                     player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
-                    a = game.field.int_distance(
-                        (grid.row, grid.col), (player_position.row, player_position.col))
-                    b = game.field.int_distance_goal_a(
-                        (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
-                    ball = self.ball_position(game)
-                    c = game.field.int_distance(
-                        (grid.row, grid.col), (ball.row, ball.col))
                     ofensive_positioning.input['distance_to_position'] = game.field.int_distance(
                         (grid.row, grid.col), (player_position.row, player_position.col))
                     ofensive_positioning.input['distance_to_enemy_goal'] = game.field.int_distance_goal_a(
                         (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
-                    # ball = self.ball_position(game)
+                    ball = self.ball_position(game)
                     ofensive_positioning.input['distance_to_ball'] = game.field.int_distance(
                         (grid.row, grid.col), (ball.row, ball.col))
                     ofensive_positioning.input['player_function'] = player_function

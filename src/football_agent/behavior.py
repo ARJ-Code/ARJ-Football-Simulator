@@ -143,3 +143,10 @@ class AvoidFatigue(Behavior):
             self.importance *= 0.9
         if game.instance == 80:
             self.importance *= 0.75
+
+class PassBall(Behavior):
+    def eval(self, action: Action, game: Game) -> double:
+        value = 0
+        if action is Pass:
+            value = 1
+        return value * self.importance
