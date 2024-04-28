@@ -189,8 +189,21 @@ Como ya mencionamos anteriormente las acciones de los jugadores ocurren en una i
 una única acción para realizar. El orden en que los agentes deciden sus acciones es secuencial y se basa en la posición que estos tengan en el campo,
 comenzando por el jugador que tiene la pelota. Las acciones que pueden realizar los jugadores son las siguientes:
 
-Listar acciones juan carlos:
+\begin{enumerate}
+      \item \textbf{Nothing}: El jugador entre sus decisiones posibles tiene la de no hacer nada, esta es la única que no resta estamina.
+            
+      \item \textbf{Pass}: El jugador con balón tiene la posibilidad de pasar la pelota a los compañeros que se encuentre en su rango de visiòn, el pase siempre llega con éxito.
+            
+      \item \textbf{Move}: Todo jugador tiene la posibilidad de moverse sobre el terreno, la única limitante es que no se puede mover a un lugar donde ya haya un jugador.
+            
+      \item \textbf{Dribble}: Junto con la acción de moverse con el balón, el jugador puede decidir si intentar regatear para que los defensores de las casillas contiguas a la casilla objetivo no le roben el balón.
+            
+      \item \textbf{StealBall}: Los jugadores a la defensa tienen la posibilidad de robar el balón si alguien del equipo rival recibe un pase  o se mueve con el balón hacia una casilla contigua a la suya.
+            
+      \item \textbf{Shoot}: Los jugadores con balón siempre tienen la oportunidad de disparar, con un probabilidad de que el balón vaya a portería en dependencia de su habilidad de tiro y distancia a esta, y en caso de que vaya a puerta hay otra probabilidad de que sea gol.
 
+  \end{enumerate}
+  
 
 \subsection{Acciones de los entrenadores}
 
@@ -199,7 +212,14 @@ en la que en todo momento los entrenadores no realizan sus acciones. Las accione
 serán aplicadas una vez que se reorganice el juego en el campo, esto solo ocurre cuando se produce un disparo a portería.
 Las posibles acciones de los entrenadores son las siguientes:
 
-Listar acciones juan carlos:
+\begin{enumerate}
+      \item \textbf{ManagerNothing}: El entrenador entre sus decisiones posibles tiene la de no hacer nada.
+            
+      \item \textbf{ChangePlayer}: El entrenador tiene la posibilidad de cambiar jugadores del terreno por otros que pertenezcan a su lista de jugadores posibles a alinear siempre que le queden cambios.
+            
+      \item \textbf{ChangeLineUp}: Todo entrenador tiene la posibilidad de cambiar la formación en medio de un partido, penalizando a los jugadores que queden jugando fuera de sus posiciones habituales.
+            
+  \end{enumerate}
 
 
 \section{Integración con LLM}
