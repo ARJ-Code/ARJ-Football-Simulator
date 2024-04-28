@@ -384,7 +384,7 @@ class ChangePlayer(LazyAction):
 
         team_data = self.game.home if self.team == HOME else self.game.away
 
-        if pos is None:
+        if self.player in team_data.unavailable:
             team_data.change_history.remove((self.player, self.new_player))
             self.not_execute = True
             return
