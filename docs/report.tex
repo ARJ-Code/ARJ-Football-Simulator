@@ -38,28 +38,28 @@ objetivo será ganar el partido.
 Nuestro ambiente consta de las siguientes características:
 
 \begin{enumerate}
-    \item \textbf{Accesibilidad}: Nuestro ambiente es totalmente accesible, cada jugador posee conocimiento acerca del
-          resto de los jugadores y de sus posiciones en el terreno, de dónde se encuentra el balón y de las estadísticas 
-          actuales del partido. Importante aclarar que para los jugadores se tiene en cuenta unn atributo de visión y 
-          cansancio, que limita las acciones que este puede tomar.
-          
-    \item \textbf{Determinista o no determinista}: Nuestro ambiente es un ambiente no determinista, ya que, al no
-          conocer el resultado de cada acción con certeza, existe incertidumbre acerca del estado del ambiente luego de 
-          realizar una acción.
-          
-    \item \textbf{Episódico o secuencial}: Este ambiente es secuencial, ya que las decisiones del agente pueden
-          influir de forma positiva o negativa en el futuro, por lo que tiene que razonar las consecuencias de sus acciones.
-          
-    \item \textbf{Estático o dinámico}: Es un ambiente estático, ya que permanece inalterable mientras no se
-          realice una acción sobre él, de hecho, todos los jugadores deben realizar su acción (la cual puede ser no hacer 
-          nada) para poder avanzar en el partido.
-          
-    \item \textbf{Discreto o continuo}: Optamos por que el tiempo fuera discreto, aunque eso no aleje un poco de la
-          realidad. En cada instancia de tiempo, cada jugador puede realizar un número constante de acciones (solo una). 
-          Cada jugador no puede decidir de forma independiente el instante exacto de tiempo en que realizará su acción, 
-          sino que se sigue un orden preestablecido en cada instancia de tiempo. Todas estas consideraciones simplifican 
-          de forma considerable el problema aunque lo alejan un poco de la realidad.
-          
+      \item \textbf{Accesibilidad}: Nuestro ambiente es totalmente accesible, cada jugador posee conocimiento acerca del
+            resto de los jugadores y de sus posiciones en el terreno, de dónde se encuentra el balón y de las estadísticas 
+            actuales del partido. Importante aclarar que para los jugadores se tiene en cuenta unn atributo de visión y 
+            cansancio, que limita las acciones que este puede tomar.
+            
+      \item \textbf{Determinista o no determinista}: Nuestro ambiente es un ambiente no determinista, ya que, al no
+            conocer el resultado de cada acción con certeza, existe incertidumbre acerca del estado del ambiente luego de 
+            realizar una acción.
+            
+      \item \textbf{Episódico o secuencial}: Este ambiente es secuencial, ya que las decisiones del agente pueden
+            influir de forma positiva o negativa en el futuro, por lo que tiene que razonar las consecuencias de sus acciones.
+            
+      \item \textbf{Estático o dinámico}: Es un ambiente estático, ya que permanece inalterable mientras no se
+            realice una acción sobre él, de hecho, todos los jugadores deben realizar su acción (la cual puede ser no hacer 
+            nada) para poder avanzar en el partido.
+            
+      \item \textbf{Discreto o continuo}: Optamos por que el tiempo fuera discreto, aunque eso no aleje un poco de la
+            realidad. En cada instancia de tiempo, cada jugador puede realizar un número constante de acciones (solo una). 
+            Cada jugador no puede decidir de forma independiente el instante exacto de tiempo en que realizará su acción, 
+            sino que se sigue un orden preestablecido en cada instancia de tiempo. Todas estas consideraciones simplifican 
+            de forma considerable el problema aunque lo alejan un poco de la realidad.
+            
 \end{enumerate}
 
 \subsection{Tipos de Agentes}
@@ -203,5 +203,34 @@ Listar acciones juan carlos:
 
 
 \section{Integración con LLM}
+
+El componente de \textbf{NLP} que usamos en nuestro proyecto fue darle la facilidad al usuario que desea realizar la simulación del 
+juego de fútbol la posibilidad de configurar dicha simulación en lenguaje natural. Para completar esta tarea usamos la api de \textbf{Gemini}
+en su versión pro, la idea básica fue realizar trabajo de \textbf{prompt engineer} a la consulta realizada por el usuario y así obtener
+la consulta original en un formato que se acople a nuestro sistema.
+
+Los posibles parámetros de configuración de la simulación son los siguientes:
+
+\begin{itemize}
+      \item \textbf{Equipos implicados en la simulación}: para obtener estos parámetros optamos por filtrar primero los
+            equipos por liga ya que era imposible proporcionarle al modelo todos los equipos de nuestro dataset, así que primero
+            el usuario deberá especificar la liga y luego los equipos implicados en el juego. Por tanto primero se le pide al
+            modelo que identifique de todas las posibles ligas la que especificó el usuario y luego se le proporcionan todos
+            los equipos de dicha liga y se le pide seleccionar el equipo local y el equipo visitante en el siguiente formato:
+            FC Barcelona vs CF Real Madrid.
+            
+      \item \textbf{Estrategia de los entrenadores para elegir la alineación}: las posibles estrategias para el entrenador en este
+            caso son \textbf{random} y \textbf{simulate} las cuales están basadas en las estrategias descritas anteriormente. Por lo
+            que entonces se le pide al modelo que identifique estos parámetros.
+            
+      \item \textbf{Estrategia de los entrenadores para elegir las acciones durante el juego}: las posibles estrategias para el entrenador en este
+            caso son \textbf{random}, \textbf{simulate} y \textbf{minimax} las cuales están basadas en las estrategias descritas anteriormente. Por lo
+            que entonces se le pide al modelo que identifique estos parámetros.
+            
+      \item \textbf{Estrategia de los jugadores para elegir las acciones durante el juego}: las posibles estrategias para los jugadores en este
+            caso son \textbf{random}, \textbf{heuristic} y \textbf{minimax} las cuales están basadas en las estrategias descritas anteriormente. Por lo
+            que entonces se le pide al modelo que identifique estos parámetros.
+            
+\end{itemize}
 
 \end{document}
