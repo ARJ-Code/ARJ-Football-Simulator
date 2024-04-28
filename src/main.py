@@ -31,11 +31,6 @@ if params is None:
 
 print('Simulación configurada correctamente')
 
-# params = SimulationParams(('FC Barcelona', 'Real Madrid CF'), 
-#                           (LineUpRandomStrategy(), LineUpRandomStrategy()),
-#                           (ActionRandomStrategy(), ActionRandomStrategy()), 
-#                           (RandomStrategy(), RandomStrategy()))
-
 sim = conf_game(params, df)
 
 
