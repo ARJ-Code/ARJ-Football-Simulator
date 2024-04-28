@@ -5,6 +5,11 @@ from params import *
 import json
 import time
 
+class Color:
+    RESET = "\033[0m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+
 df = pd.read_csv('data/players_22.csv')
 
 params = [all_random, 
@@ -32,11 +37,11 @@ for p in params:
 
         actual_time = time.time()
 
-        print(f'Finished {p.name} simulation in {actual_time - initial_time} seconds')
+        print(Color.GREEN + f'Finished {p.name} simulation in {actual_time - initial_time} seconds' + Color.RESET)
         initial_time = actual_time
     except Exception as e:
         actual_time = time.time()
 
-        print(f'Error in {p.name} simulation: {e} in {actual_time - initial_time} seconds')
+        print(Color.RED + f'Error in {p.name} simulation: {e} in {actual_time - initial_time} seconds' + Color.RESET)
         initial_time = actual_time
         continue
