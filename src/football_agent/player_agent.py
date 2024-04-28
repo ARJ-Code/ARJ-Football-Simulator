@@ -1,3 +1,4 @@
+from football_agent.simulator_agent import SimulatorAgent
 from .actions import *
 from football_tools.game import *
 from typing import List, Tuple, Generator
@@ -14,21 +15,21 @@ class Player:
     def select_action(self, actions: List[Action], game: Game) -> Action:
         return self.strategy.select_action(actions, game)
 
-    def play(self, game: Game):
-        visible_grids, p_grid = self.get_perceptions(game)
+    def play(self, simulator: SimulatorAgent):
+        visible_grids, p_grid = self.get_perceptions(simulator.game)
 
-        actions = self.construct_actions(game, visible_grids, p_grid)
+        actions = self.construct_actions(simulator.game, visible_grids, p_grid)
 
-        action = self.select_action(actions, game)
+        action = self.select_action(actions, simulator)
 
         return action
     
-    def play_heuristic(self, game: Game):
-        visible_grids, p_grid = self.get_perceptions(game)
+    def play_heuristic(self, simulator: SimulatorAgent):
+        visible_grids, p_grid = self.get_perceptions(simulator.game)
 
-        actions = self.construct_actions(game, visible_grids, p_grid)
+        actions = self.construct_actions(simulator.game, visible_grids, p_grid)
 
-        action = FootballStrategy().select_action(actions, game)
+        action = FootballStrategy().select_action(actions, simulator)
 
         return action
 

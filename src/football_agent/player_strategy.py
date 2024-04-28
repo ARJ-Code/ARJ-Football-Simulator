@@ -21,7 +21,7 @@ class PlayerStrategy(ABC):
         
 
     @abstractmethod
-    def select_action(self, actions: List[Action], game: Game) -> Action:
+    def select_action(self, actions: List[Action], simulator: SimulatorAgent) -> Action:
         pass
         # return max(actions, key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
     
@@ -30,8 +30,8 @@ class BehaviorStrategy(PlayerStrategy):
         super().__init__()
         self.behaviors: List[Behavior] = []
 
-    def select_action(self, actions: List[Action], game: Game) -> Action:
-        return max(actions, key=lambda a: sum([b.eval(a, game) for b in self.behaviors]))
+    def select_action(self, actions: List[Action], simulator: SimulatorAgent) -> Action:
+        return max(actions, key=lambda a: sum([b.eval(a, simulator.game) for b in self.behaviors]))
 
 class FootballStrategy(PlayerStrategy):
     def __init__(self) -> None:
@@ -40,17 +40,18 @@ class FootballStrategy(PlayerStrategy):
         self.ofensor = OfensorStrategy()
         self.midfield = MidfielderStrategy()
 
-    def select_action(self, actions: List[Action], game: Game) -> Action:
+    def select_action(self, actions: List[Action], simulator: SimulatorAgent) -> Action:
+        game = simulator.game
         player = actions[0].player
         team = actions[0].team
         player_function = game.home.line_up.get_player_function(
             player) if team == 'H' else game.away.line_up.get_player_function(player)
         if player_function == ATTACK:
-            return self.ofensor.select_action(actions, game)
+            return self.ofensor.select_action(actions, simulator)
         elif player_function == MIDFIELD:
-            return self.midfield.select_action(actions, game)
+            return self.midfield.select_action(actions, simulator)
         else:
-            return self.defensor.select_action(actions, game)
+            return self.defensor.select_action(actions, simulator)
 
 
 class RandomStrategy(BehaviorStrategy):
@@ -106,9 +107,11 @@ class MinimaxStrategy(PlayerStrategy):
 
         depth = 2
 
+        simulator.mask.add((player, team))
         simulator.simulate_current()
-        action = self.home_function(simulator, depth, MIN, MAX)[1] if team == HOME else self.away_function(
-            simulator, depth, MIN, MAX)[1]
+        simulator.mask.remove((player, team))
+        action = self.home_function(actions, simulator, depth, MIN, MAX)[1] if team == HOME else self.away_function(
+            actions, simulator, depth, MIN, MAX)[1]
         simulator.reset_current()
 
         return action
@@ -123,12 +126,12 @@ class MinimaxStrategy(PlayerStrategy):
         best_action = 0
 
         player = actions[0].player
-        simulator.simulate(player)
+        simulator.simulate(player, just_once=True)
 
         for i, action in enumerate(actions):
             simulator.dispatch().dispatch(action)
 
-            r, _ = self.away_function(simulator, depth-1, alpha, beta)
+            r, _ = self.away_function(actions, simulator, depth-1, alpha, beta)
 
             if r > best:
                 best = r
@@ -152,24 +155,24 @@ class MinimaxStrategy(PlayerStrategy):
         best_action = 0
 
         player = actions[0].player
-        simulator.simulate(player)
+        simulator.simulate(player, just_once=True)
 
         for i, action in enumerate(actions):
-            for _ in range(CANT_SIMULATIONS):
-                simulator.dispatch().dispatch(action)
-                simulator.simulate()
+            # for _ in range(CANT_SIMULATIONS):
+            simulator.dispatch().dispatch(action)
+            # simulator.simulate(player)
 
-                r, _ = self.home_function(simulator, depth-1, alpha, beta)
+            r, _ = self.home_function(actions, simulator, depth-1, alpha, beta)
 
-                if r < best:
-                    best = r
-                    best_action = i
+            if r < best:
+                best = r
+                best_action = i
 
-                simulator.reset()
-                simulator.dispatch().reset()
+            simulator.reset()
+            simulator.dispatch().reset()
 
-                if best < alpha:
-                    return best, best_action
+            if best < alpha:
+                return best, best_action
                 
         simulator.reset()
 
@@ -191,13 +194,14 @@ class GameEvaluator:
         if ball_position.team == team:
             value += (
                 self.distance_from_ball_to_enemy_goal(game, team) * 0.1 +
-                self.pass_oportunities(game, team) * 0.1 +
-                self.avg_ofensive_position(game, team) * 0.3
+                self.pass_oportunities(game, team) * 0.1 
+                # +
+                # self.avg_ofensive_position(game, team) / 100 * 0.3
             )
         else:
             value += (
                 self.distance_from_ball_to_self_goal(game, team) * 0.2 +
-                self.avg_defensive_position(game, team) * 0.3
+                self.avg_defensive_position(game, team) / 100 * 0.3
             )
 
         return value
@@ -213,7 +217,7 @@ class GameEvaluator:
                 if grid.team == team:
                     for i in h:
                         for j in v:
-                            x, y = grid
+                            x, y = grid.row, grid.col
                             x += i
                             y += j
                             if game.field.is_valid_grid((x, y)):
@@ -263,9 +267,10 @@ class GameEvaluator:
                     player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
 
                     defensive_positioning.input['distance_to_position'] = game.field.int_distance(
-                        (grid.row, grid.col), player_position.row, player_position.col)
+                        (grid.row, grid.col), (player_position.row, player_position.col))
+                    ball = self.ball_position(game)
                     defensive_positioning.input['distance_to_ball'] = game.field.int_distance(
-                        (grid.row, grid.col), self.ball_position(game))
+                        (grid.row, grid.col), (ball.row, ball.col))
                     defensive_positioning.input['player_function'] = player_function
 
                     defensive_positioning.compute()
@@ -282,13 +287,20 @@ class GameEvaluator:
                     player_position = team_data.line_up.get_player_position(
                         grid.player)
                     player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
-
+                    a = game.field.int_distance(
+                        (grid.row, grid.col), (player_position.row, player_position.col))
+                    b = game.field.int_distance_goal_a(
+                        (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
+                    ball = self.ball_position(game)
+                    c = game.field.int_distance(
+                        (grid.row, grid.col), (ball.row, ball.col))
                     ofensive_positioning.input['distance_to_position'] = game.field.int_distance(
-                        (grid.row, grid.col), player_position.row, player_position.col)
+                        (grid.row, grid.col), (player_position.row, player_position.col))
                     ofensive_positioning.input['distance_to_enemy_goal'] = game.field.int_distance_goal_a(
                         (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
+                    # ball = self.ball_position(game)
                     ofensive_positioning.input['distance_to_ball'] = game.field.int_distance(
-                        (grid.row, grid.col), self.ball_position(game))
+                        (grid.row, grid.col), (ball.row, ball.col))
                     ofensive_positioning.input['player_function'] = player_function
 
                     ofensive_positioning.compute()
@@ -306,7 +318,7 @@ class GameEvaluator:
 
     def team_score(self, statistics: StatisticsTeam) -> float:
         weights: Dict[str, float] = {
-            'goal': 1,
+            'goals': 1,
             'possession': 0.2,
             'shoots': 0.1,
             'passes': 0.01,
@@ -318,7 +330,7 @@ class GameEvaluator:
         score = (
             statistics.goals * weights['goals'] +
             statistics.possession_instances * weights['possession'] +
-            statistics.shots * weights['shots'] +
+            statistics.shots * weights['shoots'] +
             statistics.passes_completed * weights['passes'] -
             statistics.fouls * weights['fouls'] -
             statistics.yellow_cards * weights['yellow_cards'] -
