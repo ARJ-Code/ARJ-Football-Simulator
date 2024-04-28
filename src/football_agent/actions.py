@@ -65,9 +65,21 @@ class Pass(Action):
         self.get_player_data().power_stamina -= 1
         self.game.field.move_ball(self.src, self.dest)
 
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
+        team_statistics.passes_completed += 1
+        player_statistics.passes += 1
+
     def reset(self):
         self.get_player_data().power_stamina += 1
         self.game.field.move_ball(self.dest, self.src)
+
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
+        team_statistics.passes_completed -= 1
+        player_statistics.passes -= 1
 
 
 class Move(Action):
@@ -139,6 +151,12 @@ class Shoot(Action):
     def execute(self):
         self.get_player_data().power_stamina -= 2
 
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
+        team_statistics.shots += 1
+        player_statistics.shots += 1
+
         x, y = self.src
         q = self.get_player_data().shooting*2/100 / \
             ((self.game.field.distance_goal_h(self.src)
@@ -148,6 +166,12 @@ class Shoot(Action):
 
     def reset(self):
         self.get_player_data().power_stamina += 2
+
+        team_statistics = self.get_statistics()
+        player_statistics = self.get_player_statistics()
+
+        team_statistics.shots -= 1
+        player_statistics.shots -= 1
 
 
 class GoalTrigger(Action):
