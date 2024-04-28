@@ -26,12 +26,13 @@ def fuzzy_defensive_position():
     defensive_position['good'] = fuzz.trimf(defensive_position.universe, [50, 100, 100])
 
     rule1 = ctrl.Rule(distance_to_ball['low'], defensive_position['good'])
-    rule2 = ctrl.Rule(distance_to_position['low'] & player_function['defense'], defensive_position['good'])
+    rule2 = ctrl.Rule(distance_to_ball['medium'], defensive_position['normal'])
     rule3 = ctrl.Rule(distance_to_position['high'] & player_function['defense'], defensive_position['bad'])
     rule4 = ctrl.Rule(distance_to_ball['high'] & player_function['midfield'], defensive_position['bad'])
     rule5 = ctrl.Rule(distance_to_ball['high'] & player_function['attack'], defensive_position['normal'])
+    rule6 = ctrl.Rule(distance_to_ball['high'] & ~distance_to_position['high'] & player_function['defense'], defensive_position['normal'])
 
-    defensive_position_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
+    defensive_position_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6])
     defensive_positioning = ctrl.ControlSystemSimulation(defensive_position_ctrl)
 
     return defensive_positioning
@@ -67,6 +68,8 @@ def fuzzy_ofensive_position():
     rule2 = ctrl.Rule(~distance_to_ball['high'] & player_function['midfield'], ofensive_position['good'])
     rule3 = ctrl.Rule(distance_to_position['low'] & ~distance_to_ball['high'], ofensive_position['good'])
     rule4 = ctrl.Rule(distance_to_enemy_goal['high'] & player_function['attack'], ofensive_position['bad'])
+    rule5 = ctrl.Rule(~distance_to_ball['high'] & ~player_function['midfield'], ofensive_position['good'])
+    rule6 = ctrl.Rule(~distance_to_ball['high'] & ~distance_to_enemy_goal['high'] & ~distance_to_position['low'] & ~player_function['attack'], ofensive_position['normal'])
 
     ofensive_position_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4])
     ofensive_positioning = ctrl.ControlSystemSimulation(ofensive_position_ctrl)

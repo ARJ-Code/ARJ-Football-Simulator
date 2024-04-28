@@ -2,12 +2,18 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple
 from random import choice
 
-from football_agent.actions import Action
+from football_agent.actions import Action, ReorganizeField
+from football_agent.fuzzy_rules import fuzzy_defensive_position, fuzzy_ofensive_position
 from .simulator_agent import SimulatorAgent
-from football_tools.game import Game
+from football_tools.game import Game, GridField
 from .actions import *
 from .manager_line_up_strategy import possibles_line_up
 from football_tools.enum import HOME, AWAY
+
+DEFENSE = 'DEFENSE'
+MIDFIELD = 'MIDFIELD'
+ATTACK = 'ATTACK'
+GOALKEEPER = 'GOALKEEPER'
 
 MIN = -10000000000
 MAX = 10000000000
@@ -130,8 +136,8 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
     def home_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
 
         if depth == 0 or simulator.game.is_finish():
-            return self.evaluation(simulator.game)
-    
+            return self.evaluation(simulator)
+
         best = MIN
         best_action = 0
 
@@ -155,7 +161,7 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
 
     def away_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:
         if depth == 0 or simulator.game.is_finish():
-            return self.evaluation(simulator.game)
+            return self.evaluation(simulator)
 
         best = MAX
         best_action = 0
@@ -181,5 +187,103 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
 
         return best, actions[best_action]
 
-    def evaluation(self, game: Game) -> Tuple[int, Action | None]:
-        return game.home.statistics.goals-game.away.statistics.goals, None
+    def evaluation(self, simulator: SimulatorAgent) -> Tuple[int, Action | None]:
+        game = simulator.game
+        team_with_ball = ''
+
+        for l in game.field.grid:
+            for n in l:
+                if n.ball:
+                    team_with_ball = n.team
+                    break
+
+        simulator.dispatch().dispatch(ReorganizeField(game, team_with_ball))
+
+        value = ManagerGameEvaluator().eval(
+            game, HOME)-ManagerGameEvaluator().eval(game, AWAY)
+        simulator.dispatch().reset()
+        simulator.dispatch().reset()
+
+        return value, None
+
+
+class ManagerGameEvaluator:
+    def eval(self, game: Game, team: str) -> float:
+        ofensive_importance = 0
+        defensive_importance = 0
+        goals_diff = game.home.statistics.goals-game.away.statistics.goals
+
+        if team == HOME:
+            if goals_diff < 0:
+                ofensive_importance = 0.6
+            elif goals_diff == 0:
+                ofensive_importance = 0.5
+            else:
+                ofensive_importance = 0.4
+        else:
+            if goals_diff < 0:
+                ofensive_importance = 0.4
+            elif goals_diff == 0:
+                ofensive_importance = 0.5
+            else:
+                ofensive_importance = 0.6
+
+        defensive_importance = 1 - ofensive_importance
+
+        value = 0
+
+        value += self.avg_defensive_position(game, team) * defensive_importance
+        # value += self.avg_ofensive_position(game, team) * ofensive_importance
+
+        return value
+
+    def ball_position(self, game: Game) -> GridField:
+        for r in game.field.grid:
+            for grid in r:
+                if grid.ball:
+                    return grid
+
+    def avg_defensive_position(self, game: Game, team: str) -> float:
+        defensive_positioning = fuzzy_defensive_position()
+        avg = 0
+        for r in game.field.grid:
+            for grid in r:
+                if grid.team == team:
+                    team_data = game.home if team == HOME else game.away
+                    player_position = team_data.line_up.get_player_position(
+                        grid.player)
+                    player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
+
+                    defensive_positioning.input['distance_to_position'] = game.field.int_distance(
+                        (grid.row, grid.col), (player_position.row, player_position.col))
+                    ball = self.ball_position(game)
+                    defensive_positioning.input['distance_to_ball'] = game.field.int_distance(
+                        (grid.row, grid.col), (ball.row, ball.col))
+                    defensive_positioning.input['player_function'] = player_function
+
+                    defensive_positioning.compute()
+                    avg += defensive_positioning.output['defensive_position']
+        return avg / 10
+
+    def avg_ofensive_position(self, game: Game, team: str) -> float:
+        ofensive_positioning = fuzzy_ofensive_position()
+        avg = 0
+        for r in game.field.grid:
+            for grid in r:
+                if grid.team == team:
+                    team_data = game.home if team == HOME else game.away
+                    player_position = team_data.line_up.get_player_position(
+                        grid.player)
+                    player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
+                    ofensive_positioning.input['distance_to_position'] = game.field.int_distance(
+                        (grid.row, grid.col), (player_position.row, player_position.col))
+                    ofensive_positioning.input['distance_to_enemy_goal'] = game.field.int_distance_goal_a(
+                        (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
+                    ball = self.ball_position(game)
+                    ofensive_positioning.input['distance_to_ball'] = game.field.int_distance(
+                        (grid.row, grid.col), (ball.row, ball.col))
+                    ofensive_positioning.input['player_function'] = player_function
+
+                    ofensive_positioning.compute()
+                    avg += ofensive_positioning.output['ofensive_position']
+        return avg / 10

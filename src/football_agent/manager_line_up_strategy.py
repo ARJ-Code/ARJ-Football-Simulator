@@ -78,7 +78,7 @@ class LineUpRandomStrategy(ManagerLineUpStrategy):
 
 class LineUpSimulateStrategy(ManagerLineUpStrategy):
     def get_line_up(self, team: str,  simulator: SimulatorAgent) -> LineUp:
-        print(f'{"HOME" if team ==HOME else "AWAY"} manager is thinking')
+        print(f'{"HOME" if team == HOME else "AWAY"} manager is thinking')
 
         home_line_ups = possibles_line_up(
             simulator.game.home.data.values(), HOME)
