@@ -1,5 +1,5 @@
 from football_agent.player_strategy import FootballStrategy, MinimaxStrategy, PlayerStrategy, RandomStrategy
-from .llm import query
+from .gemini import query
 from pandas import DataFrame
 from typing import Tuple
 from football_agent.manager_line_up_strategy import ManagerLineUpStrategy, LineUpRandomStrategy, LineUpSimulateStrategy
