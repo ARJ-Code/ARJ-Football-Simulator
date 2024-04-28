@@ -67,24 +67,26 @@ class Player:
 
         if self.get_data(game).power_stamina <= 0:
             return actions
+        
+        home_goal = game.field.goal_h[1]
+        away_goal = game.field.goal_a[1]
 
         if not p_grid.ball:
             src = (p_grid.row, p_grid.col)
-            for grid in self.enemy_contiguous_grids(visible_grids, p_grid):
-                if grid.ball:
+            if src != home_goal and src != away_goal:
+                for grid in self.enemy_contiguous_grids(visible_grids, p_grid):
+                    if grid.ball:
+                        dest = (grid.row, grid.col)
+                        actions.append(
+                            StealBall(src, dest, self.dorsal, self.team, game))
+                        break
+                for grid in self.empty_contiguous_grids(visible_grids, p_grid):
                     dest = (grid.row, grid.col)
-                    actions.append(
-                        StealBall(src, dest, self.dorsal, self.team, game))
-                    break
-            for grid in self.empty_contiguous_grids(visible_grids, p_grid):
-                if src == (1, 5) or src == (18, 5):
-                    break
-                dest = (grid.row, grid.col)
-                actions.append(Move(src, dest, self.dorsal, self.team, game))
+                    actions.append(Move(src, dest, self.dorsal, self.team, game))
         else:
             src = (p_grid.row, p_grid.col)
             for grid in self.empty_contiguous_grids(visible_grids, p_grid):
-                if src == (1, 5) or src == (18, 5):
+                if src == home_goal or src == away_goal:
                     break
                 dest = (grid.row, grid.col)
                 actions.append(MoveWithBall(
@@ -94,8 +96,7 @@ class Player:
             for grid in self.friendly_grids(visible_grids):
                 dest = (grid.row, grid.col)
                 actions.append(Pass(src, dest, self.dorsal, self.team, game))
-            actions.append(Shoot(src, self.dorsal, self.team, game))
+            if src != home_goal and src != away_goal:
+                actions.append(Shoot(src, self.dorsal, self.team, game))
 
         return actions
-
-    # def filter_actions(self, )
