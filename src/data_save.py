@@ -5,30 +5,34 @@ from starting_params import *
 import json
 import time
 
+
 class Color:
     RESET = "\033[0m"
     RED = "\033[31m"
     GREEN = "\033[32m"
 
+
 df = pd.read_csv('data/players_22.csv')
 
 params = [
-        #   all_random, 
-        #   all_smart, 
-        #   smart_line_up, 
-        #   smart_vs_random_line_up, 
-        #   smart_action, 
-          smart_vs_random_action, 
-        #   minimax_vs_minimax_action,
-        #   minimax_vs_random_action,
-        #   minimax_vs_smart_action,
-        #   smart_player, 
-        #   smart_vs_random_player,
-        #   minimax_vs_random_player,
-        #   minimax_vs_minimax_player
-          ]
+    all_random,
+    all_smart,
+    smart_line_up,
+    smart_vs_random_line_up,
+    smart_action,
+    smart_vs_random_action,
+    minimax_vs_minimax_action,
+    minimax_vs_random_action,
+    minimax_vs_smart_action,
+    smart_player,
+    smart_vs_random_player,
+    minimax_vs_random_player,
+    minimax_vs_minimax_player
+]
 
 initial_time = time.time()
+
+params.reverse()
 
 for p in params:
     try:
@@ -44,11 +48,13 @@ for p in params:
 
         actual_time = time.time()
 
-        print(Color.GREEN + f'Finished {p.name} simulation in {actual_time - initial_time} seconds' + Color.RESET)
+        print(Color.GREEN +
+              f'Finished {p.name} simulation in {actual_time - initial_time} seconds' + Color.RESET)
         initial_time = actual_time
     except Exception as e:
         actual_time = time.time()
 
-        print(Color.RED + f'Error in {p.name} simulation: {e} in {actual_time - initial_time} seconds' + Color.RESET)
+        print(
+            Color.RED + f'Error in {p.name} simulation: {e} in {actual_time - initial_time} seconds' + Color.RESET)
         initial_time = actual_time
         continue
