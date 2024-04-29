@@ -34,7 +34,7 @@ for p in params:
     try:
         data = {}
         file_name = f"data/{p.name}.json"
-        for i in range(5):
+        for i in range(30):
             sim = conf_game(p.simulation_params, df)
             s = sim.simulate_and_save()
             data[i] = s

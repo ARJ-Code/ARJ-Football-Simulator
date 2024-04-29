@@ -261,18 +261,11 @@ class GameEvaluator:
                     player_position = team_data.line_up.get_player_position(
                         grid.player)
                     player_function = 2 if player_position.player_function == ATTACK else 1 if player_position.player_function == MIDFIELD else 0
-                    a = game.field.int_distance(
-                        (grid.row, grid.col), (player_position.row, player_position.col))
-                    b = game.field.int_distance_goal_a(
-                        (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
-                    ball = self.ball_position(game)
-                    c = game.field.int_distance(
-                        (grid.row, grid.col), (ball.row, ball.col))
                     ofensive_positioning.input['distance_to_position'] = game.field.int_distance(
                         (grid.row, grid.col), (player_position.row, player_position.col))
                     ofensive_positioning.input['distance_to_enemy_goal'] = game.field.int_distance_goal_a(
                         (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
-                    # ball = self.ball_position(game)
+                    ball = self.ball_position(game)
                     ofensive_positioning.input['distance_to_ball'] = game.field.int_distance(
                         (grid.row, grid.col), (ball.row, ball.col))
                     ofensive_positioning.input['player_function'] = player_function
