@@ -14,16 +14,18 @@ df = pd.read_csv('data/players_22.csv')
 
 params = [
           all_random, 
-        #   all_smart, 
-        #   smart_line_up, 
-        #   smart_vs_random_line_up, 
-        #   smart_action, 
-        #   smart_vs_random_action, 
-        #   minimax_vs_minimax_action,
-        #   minimax_vs_random_action,
-        #   minimax_vs_smart_action,
-        #   smart_player, 
-        #   smart_vs_random_player
+          all_smart, 
+          smart_line_up, 
+          smart_vs_random_line_up, 
+          smart_action, 
+          smart_vs_random_action, 
+          minimax_vs_minimax_action,
+          minimax_vs_random_action,
+          minimax_vs_smart_action,
+          smart_player, 
+          smart_vs_random_player,
+          minimax_vs_random_player,
+          minimax_vs_minimax_player
           ]
 
 initial_time = time.time()
@@ -32,7 +34,7 @@ for p in params:
     try:
         data = {}
         file_name = f"data/{p.name}.json"
-        for i in range(30):
+        for i in range(5):
             sim = conf_game(p.simulation_params, df)
             s = sim.simulate_and_save()
             data[i] = s
