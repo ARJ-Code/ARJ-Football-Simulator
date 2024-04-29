@@ -116,7 +116,9 @@ de la izquierda es la estrategia del equipo local y la de la derecha es la estra
 """
 
     strategies = {'random': RandomStrategy(
-    ), 'heuristic': FootballStrategy(), 'minimax': MinimaxStrategy()}
+    ), 'heuristic': FootballStrategy(), 
+    # 'minimax': MinimaxStrategy()
+    }
 
     response = query(prompt+'\n'+'\n'.join(strategies.keys())+'\n'+user_prompt)
 
