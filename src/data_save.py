@@ -13,19 +13,19 @@ class Color:
 df = pd.read_csv('data/players_22.csv')
 
 params = [
-          all_random, 
-          all_smart, 
-          smart_line_up, 
-          smart_vs_random_line_up, 
-          smart_action, 
+        #   all_random, 
+        #   all_smart, 
+        #   smart_line_up, 
+        #   smart_vs_random_line_up, 
+        #   smart_action, 
           smart_vs_random_action, 
-          minimax_vs_minimax_action,
-          minimax_vs_random_action,
-          minimax_vs_smart_action,
-          smart_player, 
-          smart_vs_random_player,
-          minimax_vs_random_player,
-          minimax_vs_minimax_player
+        #   minimax_vs_minimax_action,
+        #   minimax_vs_random_action,
+        #   minimax_vs_smart_action,
+        #   smart_player, 
+        #   smart_vs_random_player,
+        #   minimax_vs_random_player,
+        #   minimax_vs_minimax_player
           ]
 
 initial_time = time.time()
