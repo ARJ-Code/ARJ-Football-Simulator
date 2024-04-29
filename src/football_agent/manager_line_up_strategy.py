@@ -47,19 +47,25 @@ def possibles_conf_line_up(players: List[PlayerData], line_up: LineUp):
 
     for k in players_d.keys():
         if k not in line_up_d.keys():
+            if len(available) == 0:
+                return False
             line_up_d[k] = available.pop()
 
     line_up.conf_players(line_up_d)
 
+    return True
+
 
 def possibles_line_up(players: List[PlayerData], team: str) -> List[LineUp]:
-    possibles: List[LineUp] = [Home343(), Home433(), Home442(), Home532(
+    possibles_conf: List[LineUp] = [Home343(), Home433(), Home442(), Home532(
     )] if team == HOME else [Away343(), Away433(), Away442(), Away532()]
 
-    for p in possibles:
-        possibles_conf_line_up(players, p)
+    possibles = []
+    for p in possibles_conf:
+        if possibles_conf_line_up(players, p):
+            possibles.append(p)
 
-    return possibles
+    return possibles_conf
 
 
 class ManagerLineUpStrategy(ABC):
