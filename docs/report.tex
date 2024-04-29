@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage[utf8]{inputenc}
 \usepackage{graphicx} 
 \usepackage[text={18cm,21cm},centering]{geometry}
 
@@ -64,9 +65,9 @@ Nuestro ambiente consta de las siguientes características:
 
 \subsection{Tipos de Agentes}
 \subsubsection{Agente jugador}
-Nuestros jugadores son agentes puramente reactivos ya que basan su decision enteramente en el presente, sin referencia 
+Nuestros jugadores son agentes puramente reactivos ya que basan su decisión enteramente en el presente, sin referencia 
 a lo que haya pasado anteriormente. Estos simplemente responden directamente al ambiente. Implementamos varias 
-estrategias que pueden ser usadas por el agente estas perfectamente pueden ser combinadas en un mismo juego por 
+estrategias que pueden ser usadas por el agente. Estas perfectamente pueden ser combinadas en un mismo juego por 
 varios agentes y actúan de forma independiente.
 
 Una de estas estrategias se basa en tipos de comportamiento entre los que se encuentran: ofensivo, defensivo, evitar 
@@ -88,7 +89,7 @@ pase, el marcador actual del partido y se hace una valoración también de la ve
 en el terreno haciendo uso de las estadísticas del partido con diferentes pesos en donde por ejemplo se usan los 
 goles, faltas, pases, pases, tiros y tarjetas, donde un gol tiene bastante mas peso que un pase  o un disparo. 
 Teniendo en cuenta los valores numéricos todos estos factores el jugador evalúa la posición ofensiva/defensiva de 
-su equipo basado en reglas de lógica difusa donde por ejemplo, si el jugador considera que un atacante está ¨lejos¨ 
+su equipo basado en reglas de lógica difusa donde por ejemplo, si el jugador considera que un atacante está lejos 
 (según lo que considere lejos ese jugador) de la portería rival, este no tiene una posición ofensiva buena.
 Todas las reglas mencionadas anteriormente se aplican al algoritmo de evaluación usando lógica difusa.
 
@@ -97,7 +98,7 @@ Como en la vida real, un jugador no sabe cómo percibe el resto de los jugadores
 tiene conocimiento de sus funciones de evaluación en nuestra simulación, por lo que a la hora de ejecutar la búsqueda
 su predicción del partido no es del todo exacta, haciendo su pensamiento más realista. Para intuir las acciones del 
 resto de los jugadores, hace uso de las heurísticas explicadas anteriormente, dependiendo si el jugador a predecir 
-es defensor, centrocampista o delantero, teniendo en cuenta los comportamientos màs probables de estos tipos de 
+es defensor, centrocampista o delantero, teniendo en cuenta los comportamientos más probables de estos tipos de 
 jugadores.
 
 \subsubsection{Agente entrenador}
@@ -324,7 +325,58 @@ el resto del funcionamiento del agente.
 
 \section{Análisis experimental}
 
+Con el objetivo de evaluar el rendimiento de nuestro sistema de simulación, realizamos una serie de experimentos para medir
+la eficacia de las diferentes estrategias de los agentes y la influencia de los parámetros de configuración en el resultado.
+Para ello, simulamos varios partidos de fútbol con diferentes configuraciones heurísticas vs configuraciones 
+aleatorias y analizamos los resultados obtenidos en cuanto a las estadísticas de los jugadores.
+
+\subsection{Experimento 1: Comparación de estrategias de selección de acciones de los jugadores}
+Agente Jugador inteligente:
+
+\includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_player_home.png}
+
+Agente Jugador aleatorio:
+
+\includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_player_away.png}                       
+
+\subsection{Experimento 2: Comparación de estrategias de selección de alineación de los entrenadores}
+Agente Entrenador inteligente:
+
+\includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_home.png}
+
+Agente Entrenador aleatorio:
+
+\includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_away.png}                       
+
+\subsection{Experimento 3: Comparación de estrategias de selección de acciones de los entrenadores}
+Agente Entrenador minimax:
+
+\includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_home.png}
+
+Agente Entrenador aleatorio:
+
+\includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_away.png}
+
+\subsection{Análisis de los resultados}
+Los resultados de los experimentos muestran que las estrategias de selección de acciones de los jugadores y selección de acciones y alineación de los entrenadores
+tienen un ligero impacto en el rendimiento de las estadísticas de los jugadores, y por tanto, de los equipos en un partido de fútbol. En general, los agentes inteligentes
+tuvieron un mejor desempeño que los agentes aleatorios, lo que sugiere que nuestras implementaciones basadas en heurísticas y algoritmos de búsqueda son efectivas para
+mejorar el rendimiento de los agentes en un partido de fútbol. Sin embargo, las diferencias no son tan representativas como esperábamos.
+
+El resto de los experimentos incluyendo tablas de resultados y gráficos se encuentran en el repositorio del proyecto en el archivo \texttt{src/data\_analysis.ipynb}.
+
 \section{Conclusiones}
+
+En este trabajo, aplicamos nuestros conocimientos en inteligencia artificial (IA) y simulación para analizar algunas estrategias, tanto de entrenadores como de jugadores en un partido de fútbol.
+Nuestro sistema de simulación de partidos de fútbol basado en agentes inteligentes es capaz de generar partidos realistas y permitir a los usuarios experimentar con diferentes parámetros y estrategias para hacer predicciones de estos partidos.
+Aunque no logramos identificar una estrategia del todo buena de manera general,
+encontramos que ciertas estrategias son algo efectivas en escenarios específicos como en la elección de la alineación de los entrenadores y en la selección de acciones de los jugadores.
+Si bien los resultados obtenidos muestran un rendimiento no tan bueno de estas estrategias, creemos que con más tiempo y recursos podríamos mejorar el rendimiento de los agentes,
+sobre todo mediante el refinamiento de las heurísticas de evaluación y la exploración de estrategias de búsqueda más avanzadas. Además, este trabajo ha destacado la importancia de investigar más a fondo la interacción entre diferentes agentes en un entorno colaborativo y no determinista como es un partido de fútbol.
+En general, nuestra conclusión del proyecto es que los resultados no son del todo satisfactorios teniendo en cuenta las espectativas iniciales, 
+destacando la complejidad inherente de modelar y predecir el comportamiento en un entorno tan dinámico como un partido de fútbol, donde intervienen numerosas variables y factores impredecibles.
+En última instancia, este proyecto sienta las bases para futuras investigaciones en el campo de la inteligencia artificial aplicada al fútbol. La experiencia adquirida y los resultados obtenidos proporcionan una base para continuar explorando y mejorando las estrategias de juego, con el objetivo final de crear sistemas más sofisticados y efectivos para la simulación y análisis de partidos de fútbol.
+
 
 \section{Recomendaciones}
 
