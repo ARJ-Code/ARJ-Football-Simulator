@@ -233,7 +233,7 @@ class ManagerGameEvaluator:
         value = 0
 
         value += self.avg_defensive_position(game, team) * defensive_importance
-        # value += self.avg_ofensive_position(game, team) * ofensive_importance
+        value += self.avg_ofensive_position(game, team) * ofensive_importance
 
         return value
 

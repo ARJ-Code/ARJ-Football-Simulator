@@ -169,7 +169,8 @@ class GameEvaluator:
         if ball_position.team == team:
             value += (
                 self.distance_from_ball_to_enemy_goal(game, team) * 0.1 +
-                self.pass_oportunities(game, team) * 0.1
+                self.pass_oportunities(game, team) * 0.1 +
+                self.avg_ofensive_position(game, team) / 100 * 0.3
             )
         else:
             value += (
@@ -237,7 +238,7 @@ class GameEvaluator:
                     team_data = game.home if team == HOME else game.away
                     player_position = team_data.line_up.get_player_position(
                         grid.player)
-                    player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
+                    player_function = 2 if player_position.player_function == ATTACK else 1 if player_position.player_function == MIDFIELD else 0
 
                     defensive_positioning.input['distance_to_position'] = game.field.int_distance(
                         (grid.row, grid.col), (player_position.row, player_position.col))
@@ -259,7 +260,7 @@ class GameEvaluator:
                     team_data = game.home if team == HOME else game.away
                     player_position = team_data.line_up.get_player_position(
                         grid.player)
-                    player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
+                    player_function = 2 if player_position.player_function == ATTACK else 1 if player_position.player_function == MIDFIELD else 0
                     a = game.field.int_distance(
                         (grid.row, grid.col), (player_position.row, player_position.col))
                     b = game.field.int_distance_goal_a(
