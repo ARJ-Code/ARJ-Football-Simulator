@@ -402,6 +402,7 @@ class ChangePlayer(LazyAction):
         team_data = self.game.home if self.team == HOME else self.game.away
 
         if self.not_execute:
+            self.not_execute = False
             team_data.change_history.append((self.player, self.new_player))
             return
 
