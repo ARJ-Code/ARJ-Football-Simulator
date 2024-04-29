@@ -75,8 +75,8 @@ defensas, mediocampistas o delanteros, tendrán una estrategia basada en una heu
 pesos a cada uno de los comportamientos del agente, y un pequeño peso a un comportamiento aleatorio. De esta forma 
 cada jugador puede variar su configuración de comportamiento en dependencia de su posición en la alineación.
 
-Otra estrategia implementada se basa en el algoritmo \textbf{minimax} (no fue posible la implementación concreta del algoritmo
-ya que nuestras transiciones de estados dependen de probabilidades por lo que son no deterministas). Por esta razón 
+Otra estrategia implementada se basa en la búsqueda del posible árbol de juego (esta implementación tuvo sus complicaciones 
+ya que las transiciones de posibles acciones son no deterministas). Por esta razón 
 optamos por evaluar todas las posibles acciones del agente y tomando cada una de estas simular el comportamiento del 
 resto de los agentes y en la próxima instancia de tiempo volver a evaluar todas las posibles acciones del agente y así 
 hasta cierto nivel que se especifica. Una vez finalizadas estas simulaciones se evalúa que tan bueno es la posición 
@@ -94,7 +94,7 @@ Todas las reglas mencionadas anteriormente se aplican al algoritmo de evaluació
 
 
 Como en la vida real, un jugador no sabe cómo percibe el resto de los jugadores los datos de un partido, este no 
-tiene conocimiento de sus funciones de evaluación en nuestra simulación, por lo que a la hora de ejecutar el \textbf{minimax}
+tiene conocimiento de sus funciones de evaluación en nuestra simulación, por lo que a la hora de ejecutar la búsqueda
 su predicción del partido no es del todo exacta, haciendo su pensamiento más realista. Para intuir las acciones del 
 resto de los jugadores, hace uso de las heurísticas explicadas anteriormente, dependiendo si el jugador a predecir 
 es defensor, centrocampista o delantero, teniendo en cuenta los comportamientos màs probables de estos tipos de 
@@ -108,7 +108,8 @@ Su primera tarea será la de elegir el 11 inicial. Para ello tienen distintas po
 (4-3-3, 5-3-2, etc). Para cada formación eligen a los 11 jugadores haciendo uso de una heurística que consiste en 
 que el mejor 11 posible a alinear es aquel que mejores jugadores tenga en general (basado en los atributos de los 
 jugadores de nuestro dataset). Optamos por este heurística de evaluación un tanto greedy ya que evaluar todas las 
-combinaciones sobre el campo de los jugadores es un problema combinatorio muy costoso computacionalmente. El manager 
+combinaciones sobre el campo de los jugadores es un problema combinatorio muy costoso computacionalmente, esto tiene la
+desventaja que solo se evalúa el jugador que mejor para una posición y no existe una evaluación conjunta. El manager 
 explora todas las combinaciones de 11 jugadores posibles de la plantilla en donde ningún jugador esté fuera de 
 posición (por ejemplo no ve ninguna combinación en la que Messi sea portero) todo esto después de aplicar la 
 heurística descrita anteriormente. Luego de elegir para cada formación su mejor alineación, el entrenador simula 
@@ -126,9 +127,10 @@ ejecutar, los entrenadores siguen el mismo algoritmo descrito para elegir la ali
 asumen que el técnico rival jugará random ya que no es posible probar todas las posibles acciones y llegar hasta el 
 final del partido.
 
-Otra estrategia implementada para los entrenadores es siguiendo la misma idea que la mencionada para el \textbf{minimax} de los jugadores.
+Otra estrategia implementada para los entrenadores es siguiendo la misma idea que la búsqueda de los jugadores.
 En este caso es mucho más fácil ya que solo se tiene en cuenta la interacción de los dos entrenadores, por lo que en este
-caso si se evalúan todas las posibles acciones de ambos entrenadores y se simula hasta la próxima instancia de tiempo en que le corresponda
+caso se puede hacer uso de una especie de \textbf{minimax} (con el no determinismo de las transiciones presente). Para la ejecución del mismo
+se evalúan todas las posibles acciones de ambos entrenadores y se simula hasta la próxima instancia de tiempo en que le corresponda
 jugar, así hasta llegar a bajar una cantidad de niveles y luego utilizar la misma evaluación del campo que utilizaban los jugadores
 más simplificada.   
 
@@ -192,7 +194,7 @@ comenzando por el jugador que tiene la pelota. Las acciones que pueden realizar 
 \begin{enumerate}
       \item \textbf{Nothing}: El jugador entre sus decisiones posibles tiene la de no hacer nada, esta es la única que no resta estamina.
             
-      \item \textbf{Pass}: El jugador con balón tiene la posibilidad de pasar la pelota a los compañeros que se encuentre en su rango de visiòn, el pase siempre llega con éxito.
+      \item \textbf{Pass}: El jugador con balón tiene la posibilidad de pasar la pelota a los compañeros que se encuentre en su rango de vision, el pase siempre llega con éxito.
             
       \item \textbf{Move}: Todo jugador tiene la posibilidad de moverse sobre el terreno, la única limitante es que no se puede mover a un lugar donde ya haya un jugador.
             
@@ -256,5 +258,45 @@ Los posibles parámetros de configuración de la simulación son los siguientes:
 
 \includegraphics*[width=0.9\textwidth]{llm.png}
 \bigskip
+
+\section{Detalles de implementación}
+
+\subsection{Mecanismo de simulación}
+
+Como estamos haciendo uso de varios algoritmos de búsqueda para la ejecución de las acciones de los agentes durante el juego
+fue necesario la creación de un mecanismo de memoria sobre las acciones que se ejecutan. Para ello se encapsuló la lógica de cada 
+acción en la clase \textbf{Action} a la cual se le implementaron las funciones \textbf{execute} y \textbf{reset}. Siguiendo esta idea se definió
+un mecanismo de \textbf{Dispatch} mediante le cual los agentes ejecutan sus acciones y estas se guardan en un pila (\textbf{stack}) para después poder 
+ser reseteadas en el momento que así se requiera. En el caso de las acciones de los managers que no tiene un efecto inmediato se hace 
+uso de una nueva pila (\textbf{lazy\_stack}) en la cual se introducen estas acciones y en el momento indicado se comprimen y se aplican
+al juego de manera análoga a lo anterior este mecanismo de acciones lazy también cuenta con un mecanismo de \textbf{reset}.
+
+Para simular el juego en concreto de hace uso de una clase \textbf{Simulator} la cual se encarga de ejecutar una instancia de tiempo
+y resetear una instancia de tiempo.
+
+Para proveer un mecanismo de simulación de los agentes se emplea la clase \textbf{SimulatorAgent} la cual posee una función para simular 
+el resto del comportamiento del medio que así lo requiera el agente, una función para simular el resto de la instancia de tiempo correspondiente
+así como las respectivas funciones de reset de cada una de las funciones antes mencionadas. Además se le provee al agente una función para interactuar
+directamente con el \textbf{Dispatch} del juego.
+
+\subsection{implementación de reglas y lógica difusa}
+
+\subsection{Encapsulamiento de las estrategias de los agentes}
+
+Para cada tipo de acción de los agentes (jugar para los jugadores, realizar acciones durante el partido y establecer alineación para los
+técnicos) se crea una interfaz que permite encapsular dicho comportamiento y que sea posible permitir más de una configuración sin afectar
+el resto del funcionamiento del agente.
+
+\section{Análisis experimental}
+
+\section{Conclusiones}
+
+\section{Recomendaciones}
+
+Para futuros trabajos se recomienda un estudio más profundo del problema que permita el desarrollo de mejores heurísticas de evaluación
+que las planteadas en este trabajo. Por ejemplo no nos fue posible desarrollar una buena heurística para las acciones del manager y algunas
+de las introducidas para escoger la alineación o escoger el mejor cambio las consideramos greedy 
+
+
 
 \end{document}
