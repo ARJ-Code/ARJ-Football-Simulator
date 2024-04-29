@@ -131,6 +131,9 @@ class ActionMiniMaxStrategy(ManagerActionStrategy):
             simulator, depth, MIN, MAX)[1]
         simulator.reset_current()
 
+        if action == None:
+            return ManagerNothing()
+
         return action
 
     def home_function(self, simulator: SimulatorAgent, depth: int, alpha: int, beta: int) -> Tuple[int, Action | None]:

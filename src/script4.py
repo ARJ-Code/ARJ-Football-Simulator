@@ -15,19 +15,19 @@ class Color:
 df = pd.read_csv('data/players_22.csv')
 
 params = [
-    all_random,
-    all_smart,
-    smart_line_up,
+    # all_random,
+    # all_smart,
+    # smart_line_up,
     smart_vs_random_line_up,
-    smart_action,
-    smart_vs_random_action,
-    minimax_vs_minimax_action,
-    minimax_vs_random_action,
-    minimax_vs_smart_action,
-    smart_player,
-    smart_vs_random_player,
-    minimax_vs_random_player,
-    minimax_vs_minimax_player
+    # smart_action,
+    # smart_vs_random_action,
+    # minimax_vs_minimax_action,
+    # minimax_vs_random_action,
+    # minimax_vs_smart_action,
+    # smart_player,
+    # smart_vs_random_player,
+    # minimax_vs_random_player,
+    # minimax_vs_minimax_player
 ]
 
 initial_time = time.time()
@@ -35,7 +35,7 @@ initial_time = time.time()
 params.reverse()
 
 for p in params:
-    try:
+    # try:
         data = {}
         file_name = f"data/{p.name}.json"
         for i in range(30):
@@ -51,10 +51,10 @@ for p in params:
         print(Color.GREEN +
               f'Finished {p.name} simulation in {actual_time - initial_time} seconds' + Color.RESET)
         initial_time = actual_time
-    except Exception as e:
-        actual_time = time.time()
+    # except Exception as e:
+    #     actual_time = time.time()
 
-        print(
-            Color.RED + f'Error in {p.name} simulation: {e} in {actual_time - initial_time} seconds' + Color.RESET)
-        initial_time = actual_time
-        continue
+    #     print(
+    #         Color.RED + f'Error in {p.name} simulation: {e} in {actual_time - initial_time} seconds' + Color.RESET)
+    #     initial_time = actual_time
+    #     continue
