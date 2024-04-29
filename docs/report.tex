@@ -279,7 +279,42 @@ el resto del comportamiento del medio que así lo requiera el agente, una funci�
 así como las respectivas funciones de reset de cada una de las funciones antes mencionadas. Además se le provee al agente una función para interactuar
 directamente con el \textbf{Dispatch} del juego.
 
-\subsection{implementación de reglas y lógica difusa}
+\subsection{Implementación de reglas y lógica difusa}
+
+Usamos un sistema de lógica difusa para determinar qué tan buenas eran las posiciones defensivas y ofensivas de los jugadores 
+sobre el terreno en un partido de fútbol. El sistema consta de dos partes principales: una para determinar las posiciones 
+defensivas y otra para las posiciones ofensivas. Cada parte utiliza variables de entrada y salida difusas, así como reglas 
+difusas para mapear las entradas a las salidas correspondientes.
+
+Ambas tienen las mismas variables de entrada:
+\begin{itemize}
+      \item Distancia a la posición inicial en el Line-Up (baja, media, alta).
+            
+      \item Distancia al balón (baja, media, alta).
+            
+      \item Función del jugador (defensa, centrocampista o delantero).
+\end{itemize}
+
+Mientras que las variables de salida son:
+\begin{itemize}
+      \item Posicionamiento defensivo.
+            
+      \item Posicionamiento ofensivo.
+\end{itemize}
+
+
+Cada una con posibles valores de bueno, normal y malo en el conjunto difuso al que pertenecen.
+
+Para su implementación se utilizó la biblioteca scikit-fuzzy de Python. Se han definido antecedentes y consecuentes difusos, 
+así como reglas difusas para cada parte del sistema. 
+
+Los valores obtenidos usando estas funciones, se promedian para todos los jugadores de un mismo equipo, para tener una idea de 
+qué tan bien parados están de forma conjunta sobre el terreno. Esta es una de las métricas usadas para desarrollar la función de 
+evaluacion sobre una instancia del juego.
+
+El sistema de lógica difusa proporciona una forma flexible y adaptable de determinar el valor de las posiciones de los jugadores 
+en un partido de fútbol. Al considerar múltiples variables y reglas difusas, el sistema puede tomar decisiones inteligentes en 
+tiempo real para optimizar el rendimiento defensivo y ofensivo del equipo.
 
 \subsection{Encapsulamiento de las estrategias de los agentes}
 
