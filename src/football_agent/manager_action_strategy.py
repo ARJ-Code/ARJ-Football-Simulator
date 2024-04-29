@@ -277,8 +277,8 @@ class ManagerGameEvaluator:
                     player_function = 0 if player_position.player_function == DEFENSE else 1 if player_position.player_function == MIDFIELD else 2
                     ofensive_positioning.input['distance_to_position'] = game.field.int_distance(
                         (grid.row, grid.col), (player_position.row, player_position.col))
-                    ofensive_positioning.input['distance_to_enemy_goal'] = game.field.int_distance_goal_a(
-                        (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
+                    # ofensive_positioning.input['distance_to_enemy_goal'] = game.field.int_distance_goal_a(
+                    #     (grid.row, grid.col)) if team == HOME else game.field.int_distance_goal_h((grid.row, grid.col))
                     ball = self.ball_position(game)
                     ofensive_positioning.input['distance_to_ball'] = game.field.int_distance(
                         (grid.row, grid.col), (ball.row, ball.col))
