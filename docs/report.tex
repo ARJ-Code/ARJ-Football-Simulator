@@ -64,6 +64,7 @@ Nuestro ambiente consta de las siguientes características:
 \end{enumerate}
 
 \subsection{Tipos de Agentes}
+
 \subsubsection{Agente jugador}
 Nuestros jugadores son agentes puramente reactivos ya que basan su decisión enteramente en el presente, sin referencia 
 a lo que haya pasado anteriormente. Estos simplemente responden directamente al ambiente. Implementamos varias 
@@ -110,7 +111,7 @@ Su primera tarea será la de elegir el 11 inicial. Para ello tienen distintas po
 que el mejor 11 posible a alinear es aquel que mejores jugadores tenga en general (basado en los atributos de los 
 jugadores de nuestro dataset). Optamos por este heurística de evaluación un tanto greedy ya que evaluar todas las 
 combinaciones sobre el campo de los jugadores es un problema combinatorio muy costoso computacionalmente, esto tiene la
-desventaja que solo se evalúa el jugador que mejor para una posición y no existe una evaluación conjunta. El manager 
+desventaja que solo se evalúa el jugador que mejor para una posición y no existe una evaluación conjunta. El entrenador 
 explora todas las combinaciones de 11 jugadores posibles de la plantilla en donde ningún jugador esté fuera de 
 posición (por ejemplo no ve ninguna combinación en la que Messi sea portero) todo esto después de aplicar la 
 heurística descrita anteriormente. Luego de elegir para cada formación su mejor alineación, el entrenador simula 
@@ -135,8 +136,24 @@ se evalúan todas las posibles acciones de ambos entrenadores y se simula hasta 
 jugar, así hasta llegar a bajar una cantidad de niveles y luego utilizar la misma evaluación del campo que utilizaban los jugadores
 más simplificada.   
 
+\subsection{Características de los agentes}
+
+\begin{enumerate}
+      \item \textbf{Reactivos}: Estos agentes toman decisiones basadas únicamente en la información inmediata del entorno. Responden 
+      directamente a estímulos o cambios en el entorno. En el contexto de nuestra simulación, los agentes jugadores reaccionan instantáneamente 
+      a la posición y movimiento del balón, tomando deciciones en todo momento para lograr sus objetivos.
+
+      \item \textbf{Proactivos}: Estos agentes planifican y anticipan posibles escenarios futuros en lugar de simplemente reaccionar a 
+      eventos actuales. Estos agentes pueden tomar decisiones considerando un objetivo a largo plazo y diseñando estrategias para alcanzarlo. 
+      En nuestro proyecto, los entrenadores podrían actuar como agentes proactivos al planificar la alineación del equipo, realizar cambios 
+      tácticos durante el partido y ajustar la estrategia en función del desarrollo del juego.
+
+\end{enumerate}
+
 \section{Simulación de partidos}
+
 \subsection{Campo de juego y posiciones}
+
 El terreno de juego se representa gráficamente con un
 array de 20 filas por 11 columnas donde se intenta simular un campo de fútbol real, con límites por los lados y por 
 el fondo, y con dos porterías. Una vez que introducimos a los jugadores en el campo para simular un partido, ocupan 
@@ -216,7 +233,7 @@ serán aplicadas una vez que se reorganice el juego en el campo, esto solo ocurr
 Las posibles acciones de los entrenadores son las siguientes:
 
 \begin{enumerate}
-      \item \textbf{ManagerNothing}: El entrenador entre sus decisiones posibles tiene la de no hacer nada.
+      \item \textbf{entrenadorNothing}: El entrenador entre sus decisiones posibles tiene la de no hacer nada.
             
       \item \textbf{ChangePlayer}: El entrenador tiene la posibilidad de cambiar jugadores del terreno por otros que pertenezcan a su lista de jugadores posibles a alinear siempre que le queden cambios.
             
@@ -268,7 +285,7 @@ Como estamos haciendo uso de varios algoritmos de búsqueda para la ejecución d
 fue necesario la creación de un mecanismo de memoria sobre las acciones que se ejecutan. Para ello se encapsuló la lógica de cada 
 acción en la clase \textbf{Action} a la cual se le implementaron las funciones \textbf{execute} y \textbf{reset}. Siguiendo esta idea se definió
 un mecanismo de \textbf{Dispatch} mediante le cual los agentes ejecutan sus acciones y estas se guardan en un pila (\textbf{stack}) para después poder 
-ser reseteadas en el momento que así se requiera. En el caso de las acciones de los managers que no tiene un efecto inmediato se hace 
+ser reseteadas en el momento que así se requiera. En el caso de las acciones de los entrenadors que no tiene un efecto inmediato se hace 
 uso de una nueva pila (\textbf{lazy\_stack}) en la cual se introducen estas acciones y en el momento indicado se comprimen y se aplican
 al juego de manera análoga a lo anterior este mecanismo de acciones lazy también cuenta con un mecanismo de \textbf{reset}.
 
@@ -333,29 +350,45 @@ aleatorias y analizamos los resultados obtenidos en cuanto a las estadísticas d
 \subsection{Experimento 1: Comparación de estrategias de selección de acciones de los jugadores}
 Agente Jugador inteligente:
 
+\includegraphics[width=0.9\textwidth]{tabla1.PNG}
+
 \includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_player_home.png}
 
 Agente Jugador aleatorio:
+
+\includegraphics[width=0.9\textwidth]{tabla2.PNG}
 
 \includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_player_away.png}                       
 
 \subsection{Experimento 2: Comparación de estrategias de selección de alineación de los entrenadores}
 Agente Entrenador inteligente:
 
+\includegraphics[width=0.9\textwidth]{tabla3.PNG}
+
 \includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_home.png}
 
 Agente Entrenador aleatorio:
+
+\includegraphics[width=0.9\textwidth]{tabla4.PNG}
 
 \includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_away.png}                       
 
 \subsection{Experimento 3: Comparación de estrategias de selección de acciones de los entrenadores}
 Agente Entrenador minimax:
 
+\includegraphics[width=0.9\textwidth]{tabla5.PNG}
+
 \includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_home.png}
 
 Agente Entrenador aleatorio:
 
+\includegraphics[width=0.9\textwidth]{tabla6.PNG}
+
 \includegraphics[width=0.9\textwidth,height=0.5\textwidth]{smart_vs_random_line_up_away.png}
+
+\subsection{Datos generales}
+
+\includegraphics[width=0.9\textwidth]{general_data.jpg}
 
 \subsection{Análisis de los resultados}
 Los resultados de los experimentos muestran que las estrategias de selección de acciones de los jugadores y selección de acciones y alineación de los entrenadores
@@ -380,20 +413,33 @@ En última instancia, este proyecto sienta las bases para futuras investigacione
 
 \section{Recomendaciones}
 
-Para futuros trabajos se recomienda un estudio más profundo del problema que permita el desarrollo de mejores heurísticas de evaluación
-que las planteadas en este trabajo. Por ejemplo no nos fue posible desarrollar una buena heurística para las acciones del manager y algunas
-de las introducidas para escoger la alineación o escoger el mejor cambio las consideramos que no evalúan la alineación en conjunto.
-Además de consideramos importante mejorar las heurísticas empleadas en la función de evaluación lo que permitirá un mejor rendimiento 
-de los algoritmos de búsqueda. Otra heurística no abordada en este trabajo pudiera consistir en al planificación de acciones conjuntas y 
-colaborativas para la realización de acciones en equipo.
+% Para futuros trabajos se recomienda un estudio más profundo del problema que permita el desarrollo de mejores heurísticas de evaluación
+% que las planteadas en este trabajo. Por ejemplo no nos fue posible desarrollar una buena heurística para las acciones del entrenador y algunas
+% de las introducidas para escoger la alineación o escoger el mejor cambio las consideramos que no evalúan la alineación en conjunto.
+% Además de consideramos importante mejorar las heurísticas empleadas en la función de evaluación lo que permitirá un mejor rendimiento 
+% de los algoritmos de búsqueda. Otra idea no abordada en este trabajo pudiera consistir en la planificación de acciones conjuntas y 
+% colaborativas para la realización de acciones en equipo.
 
-El estudio de mejores estrategias de búsqueda para este tipo de escenarios que pueden llegar a ser colaborativos y no deterministas puede
-ser otro punto importante para mejoras futuras.
+% El estudio de mejores estrategias de búsqueda para este tipo de escenarios que pueden llegar a ser colaborativos y no deterministas puede
+% ser otro punto importante para mejoras futuras.
 
-Otro aspecto que queremos resaltar y no exploramos del todo es el reajuste de los pesos con que cuentan las estrategias heurísticas de los jugadores
-que en futuras implementaciones se pudiera tratar de desarrollar un algoritmo que sea capaz de reajustar estos parámetros en base a la experiencia
-obtenida por el agente.
+% Otro aspecto que queremos resaltar y no exploramos del todo es el reajuste de los pesos con que cuentan las estrategias heurísticas de los jugadores
+% que en futuras implementaciones se pudiera tratar de desarrollar un algoritmo que sea capaz de reajustar estos parámetros en base a la experiencia
+% obtenida por el agente.
 
+Para futuras investigaciones, se recomienda realizar un análisis más exhaustivo del problema con el fin de desarrollar heurísticas de evaluación más 
+efectivas que las propuestas en este trabajo. Por ejemplo, encontramos desafíos al intentar diseñar una heurística adecuada para las decisiones del entrenador, 
+así como algunas limitaciones en las estrategias introducidas para la selección de alineaciones y cambios, ya que no consideran de manera integral la 
+dinámica del equipo. Asimismo, consideramos crucial mejorar las heurísticas utilizadas en la función de evaluación de una instancia del terreno, lo que 
+potenciará el rendimiento de los algoritmos de búsqueda.
+
+Una idea no explorada en este trabajo es el uso de prácticas de inteligencia artificial para la planificación de acciones colaborativas y coordinadas 
+con el objetivo ejecutar acciones en equipo, lo que podría ser un enfoque prometedor. Además, el estudio de estrategias de búsqueda más efectivas en 
+escenarios colaborativos y no deterministas representa otro aspecto importante para futuras mejoras.
+
+También es relevante destacar que no abordamos completamente un ajusye inteligente de los pesos asociados a las estrategias heurísticas de los jugadores. 
+En futuras implementaciones, sería interesante explorar algoritmos capaces de reajustar estos parámetros en función de la experiencia adquirida por el 
+agente durante el juego, lo que podría mejorar significativamente su desempeño en situaciones variables y cambiantes.
 
 
 \end{document}
